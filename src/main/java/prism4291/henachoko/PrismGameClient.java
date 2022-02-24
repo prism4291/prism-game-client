@@ -2,7 +2,6 @@ package prism4291.henachoko;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
-import io.socket.emitter.Emitter;
 
 import java.net.URISyntaxException;
 
@@ -19,7 +18,7 @@ public class PrismGameClient {
             socket.emit("sendMessage", "This is Java");
 
         });
-
+        socket.emit("sendMessage", "This is Java");
         socket.connect();
     }
 }
