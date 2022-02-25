@@ -2,6 +2,8 @@ package prism4291.henachoko;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -17,7 +19,7 @@ public class PrismGameClient {
     static String keyPassWord="password";
     static String socketId=null;
     public static void main(String[] args) throws URISyntaxException {
-        Map<String,String> userData=getUserData();
+        JSONObject userData=getUserData();
         System.out.println(userData);
         if(userData==null){
             return;
@@ -25,7 +27,7 @@ public class PrismGameClient {
         final Socket socket = IO.socket("https://prism-game-server.herokuapp.com/");
 
 
-        socket.on("serverLoginId", objects -> {
+        socket.on("serverVerifyLogin", objects -> {
             // 最初の引数を表示
             System.out.println(Arrays.toString(objects));
             //サーバー側にmessage_from_clientで送信
@@ -34,31 +36,30 @@ public class PrismGameClient {
             System.out.println(socketId);
         });
 
-        System.out.println("1");
         socket.connect();
         socket.emit("clientLogin", userData.toString());
         System.out.println("2");
     }
-    public static Map<String,String> getUserData(){
+    public static JSONObject getUserData(){
         Path path=Paths.get("prismGameData.txt");
         if(Files.exists(path)){
             try {
                 List<String> allLines=Files.readAllLines(path,StandardCharsets.UTF_8);
-                Map<String,String> data=new HashMap<>();
+                JSONObject data=new JSONObject();
                 for (String s:allLines) {
                     String[] line=s.split("=");
                     if(line.length>1) {
                         data.put(line[0],String.join("=", Arrays.copyOfRange(line,1,line.length)));
                     }
                 }
-                if(isStringBad(data.get(keyName))){
+                if(isStringBad(data.getString(keyName))){
                     return null;
                 }
-                if(isStringBad(data.get(keyPassWord))){
+                if(isStringBad(data.getString(keyPassWord))){
                     return null;
                 }
                 return data;
-            } catch (IOException e) {
+            } catch (IOException | JSONException e) {
                 e.printStackTrace();
             }
             return null;
