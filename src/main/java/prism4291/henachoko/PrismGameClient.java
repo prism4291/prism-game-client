@@ -13,24 +13,29 @@ import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 public class PrismGameClient {
-    static String keyName="name";
+    static String keyName="username";
     static String keyPassWord="password";
     public static void main(String[] args) throws URISyntaxException {
         Map<String,String> userData=getUserData();
         System.out.println(userData);
+        if(userData==null){
+            return;
+        }
         final Socket socket = IO.socket("https://prism-game-server.herokuapp.com/");
 
-        // サーバーからのmessage_from_serverがemitされた時
-        socket.on("receiveMessage", objects -> {
+
+        socket.on("serverLoginId", objects -> {
             // 最初の引数を表示
-            System.out.println(objects[0]);
+            System.out.println(Arrays.toString(objects));
             //サーバー側にmessage_from_clientで送信
-            socket.emit("sendMessage", "This is Java");
+            //socket.emit("serverLoginId", "This is Java");
 
         });
-        socket.emit("sendMessage", "This is Java");
 
+        System.out.println("1");
         socket.connect();
+        socket.emit("clientLogin", userData.toString());
+        System.out.println("2");
     }
     public static Map<String,String> getUserData(){
         Path path=Paths.get("prismGameData.txt");
