@@ -15,6 +15,7 @@ import java.util.*;
 public class PrismGameClient {
     static String keyName="username";
     static String keyPassWord="password";
+    static String socketId=null;
     public static void main(String[] args) throws URISyntaxException {
         Map<String,String> userData=getUserData();
         System.out.println(userData);
@@ -29,7 +30,8 @@ public class PrismGameClient {
             System.out.println(Arrays.toString(objects));
             //サーバー側にmessage_from_clientで送信
             //socket.emit("serverLoginId", "This is Java");
-
+            socketId=(String)objects[0];
+            System.out.println(socketId);
         });
 
         System.out.println("1");
