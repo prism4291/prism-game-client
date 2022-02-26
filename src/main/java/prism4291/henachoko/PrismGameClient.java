@@ -4,6 +4,7 @@ import io.socket.client.IO;
 import io.socket.client.Socket;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.lwjgl.glfw.GLFW;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -17,28 +18,33 @@ import java.util.*;
 public class PrismGameClient {
     static String keyName="username";
     static String keyPassWord="password";
-    static String socketId=null;
     public static void main(String[] args) throws URISyntaxException {
         JSONObject userData=getUserData();
         System.out.println(userData);
         if(userData==null){
             return;
         }
-        final Socket socket = IO.socket("https://prism-game-server.herokuapp.com/");
+        PrismGameVariable.socket = IO.socket("https://prism-game-server.herokuapp.com/");
 
 
-        socket.on("serverVerifyLogin", objects -> {
-            // 最初の引数を表示
-            System.out.println(Arrays.toString(objects));
-            //サーバー側にmessage_from_clientで送信
-            //socket.emit("serverLoginId", "This is Java");
-            socketId=(String)objects[0];
-            System.out.println(socketId);
+        PrismGameVariable.socket.on("serverVerifyLogin", objects -> {
+            JSONObject jo=(JSONObject)objects[0];
+            System.out.println(jo);
+            switch (jo.getString("status")) {
+                case "new", "match" -> PrismGameVariable.socketId = jo.getString("socketid");
+                case "fail", default -> GLFW.glfwSetWindowShouldClose(PrismGameVariable.WIN, true);
+            }
+
         });
 
-        socket.connect();
-        socket.emit("clientLogin", userData.toString());
-        System.out.println("2");
+        PrismGameVariable.socket.connect();
+        PrismGameVariable.socket.emit("clientLogin", userData.toString());
+        PrismGameWindow pgw=new PrismGameWindow();
+        pgw.run();
+        PrismGameVariable.socket.off();
+        PrismGameVariable.socket.disconnect();
+        PrismGameVariable.socket.close();
+
     }
     public static JSONObject getUserData(){
         Path path=Paths.get("prismGameData.txt");
