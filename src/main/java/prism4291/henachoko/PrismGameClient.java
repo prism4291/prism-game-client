@@ -31,8 +31,14 @@ public class PrismGameClient {
             JSONObject jo=(JSONObject)objects[0];
             System.out.println(jo);
             switch (jo.getString("status")) {
-                case "new", "match" -> PrismGameVariable.socketId = jo.getString("socketid");
-                case "fail", default -> GLFW.glfwSetWindowShouldClose(PrismGameVariable.WIN, true);
+                case "new":
+                case "match":
+                    PrismGameVariable.socketId = jo.getString("socketid");
+                    break;
+                case "fail":
+                default:
+                    GLFW.glfwSetWindowShouldClose(PrismGameVariable.WIN, true);
+                    break;
             }
 
         });
