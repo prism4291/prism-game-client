@@ -21,107 +21,168 @@ public class PrismGameMain {
     JSONArray roomList;
     boolean roomJoined;
     boolean gameStarting;
-    List<Integer> roomTexts;
+    List<List<Integer>> roomTexts;
+    int myRoomImage;
+    String myRoomName;
+    JSONObject currentRoom;
+    List<Integer> roomMemberImage;
+    boolean memberUpdated;
     PrismGameMain() {
         fuse = 0;
-        seq=0;
-        images.put("title",Texture.loadTexture("/title.png"));
-        images.put("host",Texture.loadTexture("/host.png"));
-        images.put("guest",Texture.loadTexture("/guest.png"));
-        menuSelect=0;
-        roomJoined=false;
-        gameStarting=false;
+        seq = 0;
+        images.put("title", Texture.loadTexture("/title.png"));
+        images.put("host", Texture.loadTexture("/host.png"));
+        images.put("guest", Texture.loadTexture("/guest.png"));
+        menuSelect = 0;
+        roomJoined = false;
+        gameStarting = false;
+
         PrismGameVariable.socket.on("serverStartGame", objects -> {
-            JSONObject jo=(JSONObject)objects[0];
+            JSONObject jo = (JSONObject) objects[0];
             System.out.println(jo);
-            if(jo.getString("status").equals("start")){
-                gameStarting=true;
+            if (jo.getString("status").equals("start")) {
+                gameStarting = true;
             }
         });
-        roomList=null;
-
+        currentRoom=null;
+        PrismGameVariable.socket.on("serverJoinMember", objects -> {
+            JSONObject jo = (JSONObject) objects[0];
+            System.out.println(jo);
+            currentRoom=jo.getJSONObject("room");
+            memberUpdated=true;
+        });
+        roomList = null;
+        myRoomImage = -1;
+        myRoomName = null;
+        roomMemberImage=new ArrayList<>();
+        memberUpdated=false;
     }
 
     void Main() {
         fuse++;
-        if(socketId==null){
+        if (socketId == null) {
             return;
         }
-        if(!socketId.equals(socket.id())){
+        if (!socketId.equals(socket.id())) {
             return;
         }
-        if(seq==0){
-            int res=showTitle();
-            if(res==1){
-                seq=1;
+        if (seq == 0) {
+            int res = showTitle();
+            if (res == 1) {
+                seq = 1;
             }
-        }
-        else if(seq==1){
-            int res=showMenu();
-            if(res==1){
-                seq=2;
-
-                PrismGameVariable.socket.emit("clientCreateRoom");
-                roomJoined=true;
-            }
-            if(res==2){
-                seq=3;
-                PrismGameVariable.socket.on("serverGetRoomRes", objects -> {
-                    JSONObject jo=(JSONObject)objects[0];
+        } else if (seq == 1) {
+            int res = showMenu();
+            if (res == 1) {
+                seq = 2;
+                PrismGameVariable.socket.on("serverCreateRoomRes", objects -> {
+                    JSONObject jo = (JSONObject) objects[0];
                     System.out.println(jo);
-                    roomList=jo.getJSONArray("rooms");
+                    myRoomName = jo.getString("name");
+                    roomJoined = true;
+                    currentRoom=jo.getJSONObject("room");
+                    memberUpdated=true;
+                });
+                PrismGameVariable.socket.emit("clientCreateRoom");
+
+            }
+            if (res == 2) {
+                seq = 3;
+                PrismGameVariable.socket.on("serverGetRoomRes", objects -> {
+                    JSONObject jo = (JSONObject) objects[0];
+                    System.out.println(jo);
+                    roomList = jo.getJSONArray("rooms");
 
                 });
                 PrismGameVariable.socket.on("serverJoinRoomRes", objects -> {
-                    JSONObject jo=(JSONObject)objects[0];
+                    JSONObject jo = (JSONObject) objects[0];
                     System.out.println(jo);
-                    if(jo.getString("success").equals("success")){
-                        roomJoined=true;
+                    if (jo.getString("status").equals("success")) {
+                        roomJoined = true;
+                        myRoomName = jo.getJSONObject("room").getString("name");
+                        currentRoom=jo.getJSONObject("room");
+                        memberUpdated=true;
                     }
 
                 });
-
+                menuSelect=0;
                 PrismGameVariable.socket.emit("clientGetRoom");
             }
-        }
-        else if(seq==2){
-            int res=showHost();
-            if(gameStarting){
-                seq=4;
+        } else if (seq == 2) {
+            int res = showHost();
+            if(res==1){
+
+                PrismGameVariable.socket.emit("clientStartGame",currentRoom.toString());
             }
-        }
-        else if(seq==3){
-            int res=showGuest();
-            if(gameStarting){
-                seq=4;
+            if (gameStarting) {
+                seq = 5;
             }
+        } else if (seq == 3) {
+            int res = showGuest();
+            //System.out.println(res);
+            if (res > 0) {
+                if (roomList.length() > res - 1) {
+                    JSONObject jr = roomList.getJSONObject(res - 1);
+                    JSONObject msg = new JSONObject();
+                    msg.put("room", jr.getString("name"));
+                    PrismGameVariable.socket.emit("clientJoinRoom", msg.toString());
+                    seq = 4;
+                }
+            }
+
+        }else if(seq==4){
+            int res=showJoinedRoom();
+            if (gameStarting) {
+                seq = 5;
+            }
+        } else if (seq == 5) {
+            int res = MainGame();
+
         }
-        else if(seq==4){
-            int res=MainGame();
-        }
+        //System.out.println(seq);
         myActionMain();
     }
-    int MainGame(){
+
+    int MainGame() {
+        glBegin(GL_TRIANGLE_FAN);
+        glColor4d(1, 1, 1, 1);
+        glVertex2d(-1, -1);
+        glVertex2d(-1, 1);
+        glVertex2d(1, 1);
+        glVertex2d(1, -1);
+        glEnd();
         return 0;
     }
-    int showTitle(){
+    void updateMember(){
+        for(int n:roomMemberImage){
+            glDeleteTextures(n);
+        }
+        roomMemberImage=new ArrayList<>();
+        roomMemberImage.add(Texture.drawStrImage(currentRoom.getString("host")).getId());
+        for(Object str:currentRoom.getJSONArray("guest")){
+            System.out.println(str);
+            roomMemberImage.add(Texture.drawStrImage((String) str).getId());
+        }
+        memberUpdated=false;
+    }
+    int showTitle() {
         glBegin(GL_TRIANGLE_FAN);
-        glColor4d(1,1,1,1);
-        glVertex2d(-1,-1);
-        glVertex2d(-1,1);
-        glVertex2d(1,1);
-        glVertex2d(1,-1);
+        glColor4d(1, 1, 1, 1);
+        glVertex2d(-1, -1);
+        glVertex2d(-1, 1);
+        glVertex2d(1, 1);
+        glVertex2d(1, -1);
         glEnd();
         glBindTexture(GL_TEXTURE_2D, images.get("title").getId());
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glBegin(GL11.GL_QUADS);
-        GL11.glTexCoord2f(0,0);
+        GL11.glTexCoord2f(0, 0);
         GL11.glVertex2f(-1, 1);
-        GL11.glTexCoord2f(0,1);
+        GL11.glTexCoord2f(0, 1);
         GL11.glVertex2f(-1, -1);
-        GL11.glTexCoord2f(1,1);
+        GL11.glTexCoord2f(1, 1);
         GL11.glVertex2f(1, -1);
-        GL11.glTexCoord2f(1,0);
+        GL11.glTexCoord2f(1, 0);
         GL11.glVertex2f(1, 1);
         GL11.glEnd();
         for (int j : KEY_BUTTON) {
@@ -131,15 +192,16 @@ public class PrismGameMain {
         }
         return 0;
     }
-    int showMenu(){
+
+    int showMenu() {
         glBegin(GL_TRIANGLE_FAN);
-        glColor4d(1,1,1,1);
-        glVertex2d(-1,-1);
-        glVertex2d(-1,1);
-        glVertex2d(1,1);
-        glVertex2d(1,-1);
+        glColor4d(1, 1, 1, 1);
+        glVertex2d(-1, -1);
+        glVertex2d(-1, 1);
+        glVertex2d(1, 1);
+        glVertex2d(1, -1);
         glEnd();
-        glColor4d(0,1,0,1);
+        glColor4d(0, 1, 0, 1);
         switch (menuSelect) {
             case 0 -> {
                 glBegin(GL_TRIANGLE_FAN);
@@ -158,90 +220,227 @@ public class PrismGameMain {
                 glEnd();
             }
         }
-        glColor4d(1,1,1,1);
+        glColor4d(1, 1, 1, 1);
         glBindTexture(GL_TEXTURE_2D, images.get("host").getId());
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glBegin(GL11.GL_QUADS);
-        GL11.glTexCoord2d(0,0);
+        GL11.glTexCoord2d(0, 0);
         GL11.glVertex2d(-0.7, 0.7);
-        GL11.glTexCoord2d(0,1);
+        GL11.glTexCoord2d(0, 1);
         GL11.glVertex2d(-0.7, -0.7);
-        GL11.glTexCoord2d(1,1);
+        GL11.glTexCoord2d(1, 1);
         GL11.glVertex2d(-0.2, -0.7);
-        GL11.glTexCoord2d(1,0);
+        GL11.glTexCoord2d(1, 0);
         GL11.glVertex2d(-0.2, 0.7);
         GL11.glEnd();
         glBindTexture(GL_TEXTURE_2D, images.get("guest").getId());
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glBegin(GL11.GL_QUADS);
-        GL11.glTexCoord2d(0,0);
+        GL11.glTexCoord2d(0, 0);
         GL11.glVertex2d(0.2, 0.7);
-        GL11.glTexCoord2d(0,1);
+        GL11.glTexCoord2d(0, 1);
         GL11.glVertex2d(0.2, -0.7);
-        GL11.glTexCoord2d(1,1);
+        GL11.glTexCoord2d(1, 1);
         GL11.glVertex2d(0.7, -0.7);
-        GL11.glTexCoord2d(1,0);
+        GL11.glTexCoord2d(1, 0);
         GL11.glVertex2d(0.7, 0.7);
         GL11.glEnd();
-        if(KEY_BUTTON[GLFW.GLFW_KEY_A]==1){
+        if (KEY_BUTTON[GLFW.GLFW_KEY_A] == 1) {
             menuSelect--;
         }
-        if(KEY_BUTTON[GLFW.GLFW_KEY_D]==1){
+        if (KEY_BUTTON[GLFW.GLFW_KEY_D] == 1) {
             menuSelect++;
         }
-        if(menuSelect<0){
-            menuSelect=1;
+        if (menuSelect < 0) {
+            menuSelect = 1;
         }
-        if(menuSelect>=2){
-            menuSelect=0;
+        if (menuSelect >= 2) {
+            menuSelect = 0;
         }
-        if(KEY_BUTTON[GLFW.GLFW_KEY_ENTER]==1){
-            return menuSelect+1;
+        if (KEY_BUTTON[GLFW.GLFW_KEY_ENTER] == 1) {
+            return menuSelect + 1;
         }
         return 0;
     }
-    int showHost(){
+
+    int showHost() {
+        if(memberUpdated){
+            updateMember();
+        }
         glBegin(GL_TRIANGLE_FAN);
-        glColor4d(0.8,1,0.8,1);
-        glVertex2d(-1,-1);
-        glVertex2d(-1,1);
-        glVertex2d(1,1);
-        glVertex2d(1,-1);
+        glColor4d(0.8, 1, 0.8, 1);
+        glVertex2d(-1, -1);
+        glVertex2d(-1, 1);
+        glVertex2d(1, 1);
+        glVertex2d(1, -1);
         glEnd();
+        if (myRoomImage == -1) {
+            if (myRoomName != null) {
+                myRoomImage = Texture.drawStrImage(myRoomName).getId();
+            }
+        } else {
+            double y = 0.5;
+
+            glBindTexture(GL_TEXTURE_2D, myRoomImage);
+            GL11.glEnable(GL11.GL_TEXTURE_2D);
+            GL11.glBegin(GL11.GL_QUADS);
+            GL11.glTexCoord2d(0, 0);
+            GL11.glVertex2d(-0.6, y);
+            GL11.glTexCoord2d(0, 1);
+            GL11.glVertex2d(-0.6, y - 0.2);
+            GL11.glTexCoord2d(1, 1);
+            GL11.glVertex2d(0, y - 0.2);
+            GL11.glTexCoord2d(1, 0);
+            GL11.glVertex2d(0, y);
+            GL11.glEnd();
+
+        }
+        double y = 0;
+        for (int n : roomMemberImage) {
+            glBindTexture(GL_TEXTURE_2D, n);
+            GL11.glEnable(GL11.GL_TEXTURE_2D);
+            GL11.glBegin(GL11.GL_QUADS);
+            GL11.glTexCoord2d(0, 0);
+            GL11.glVertex2d(-0.6, y);
+            GL11.glTexCoord2d(0, 1);
+            GL11.glVertex2d(-0.6, y - 0.1);
+            GL11.glTexCoord2d(1, 1);
+            GL11.glVertex2d(-0.3, y - 0.1);
+            GL11.glTexCoord2d(1, 0);
+            GL11.glVertex2d(-0.3, y);
+            GL11.glEnd();
+            y -= 0.1;
+        }
+        if (KEY_BUTTON[GLFW.GLFW_KEY_ENTER] == 1) {
+            if(currentRoom!=null) {
+                if (currentRoom.getJSONArray("guest").length() >= 1) {
+                    return 1;
+                }
+            }
+        }
         return 0;
     }
-    int showGuest(){
+
+    int showGuest() {
         glBegin(GL_TRIANGLE_FAN);
-        glColor4d(0.8,0.8,1,1);
-        glVertex2d(-1,-1);
-        glVertex2d(-1,1);
-        glVertex2d(1,1);
-        glVertex2d(1,-1);
+        glColor4d(0.8, 0.8, 1, 1);
+        glVertex2d(-1, -1);
+        glVertex2d(-1, 1);
+        glVertex2d(1, 1);
+        glVertex2d(1, -1);
         glEnd();
-        if(roomList!=null){
-            if(roomTexts==null) {
+        if (roomList != null) {
+            if (roomTexts == null) {
                 roomTexts = new ArrayList<>();
                 for (Object elem : roomList) {
                     JSONObject room = (JSONObject) elem;
-                    int n = Texture.drawStrImage(room.getString("host")).getId();
-                    roomTexts.add(n);
+                    int n = Texture.drawStrImage(room.getString("name")).getId();
+                    int n2 = Texture.drawStrImage(room.getString("host")).getId();
+                    List<Integer> r = new ArrayList<>();
+                    r.add(n);
+                    r.add(n2);
+                    roomTexts.add(r);
                 }
             }
-            double y=0.9;
-            for(int n:roomTexts){
+
+            double y = 0.9;
+            for (List<Integer> n : roomTexts) {
+                glBindTexture(GL_TEXTURE_2D, n.get(0));
+                GL11.glEnable(GL11.GL_TEXTURE_2D);
+                GL11.glBegin(GL11.GL_QUADS);
+                GL11.glTexCoord2d(0, 0);
+                GL11.glVertex2d(-0.6, y);
+                GL11.glTexCoord2d(0, 1);
+                GL11.glVertex2d(-0.6, y - 0.1);
+                GL11.glTexCoord2d(1, 1);
+                GL11.glVertex2d(-0.3, y - 0.1);
+                GL11.glTexCoord2d(1, 0);
+                GL11.glVertex2d(-0.3, y);
+                GL11.glEnd();
+                glBindTexture(GL_TEXTURE_2D, n.get(1));
+                GL11.glEnable(GL11.GL_TEXTURE_2D);
+                GL11.glBegin(GL11.GL_QUADS);
+                GL11.glTexCoord2d(0, 0);
+                GL11.glVertex2d(-0.1, y);
+                GL11.glTexCoord2d(0, 1);
+                GL11.glVertex2d(-0.1, y - 0.1);
+                GL11.glTexCoord2d(1, 1);
+                GL11.glVertex2d(0.2, y - 0.1);
+                GL11.glTexCoord2d(1, 0);
+                GL11.glVertex2d(0.2, y);
+                GL11.glEnd();
+                y -= 0.1;
+            }
+            y=0.9-0.1*menuSelect;
+            GL11.glColor4d(1,0,0,Math.sin(fuse*0.04));
+            GL11.glBegin(GL_TRIANGLE_FAN);
+            GL11.glVertex2d(-0.64, y-0.02);
+            GL11.glVertex2d(-0.64, y - 0.08);
+            GL11.glVertex2d(-0.61, y - 0.05);
+            GL11.glEnd();
+            if (KEY_BUTTON[GLFW.GLFW_KEY_W] == 1) {
+                menuSelect--;
+            }
+            if (KEY_BUTTON[GLFW.GLFW_KEY_S] == 1) {
+                menuSelect++;
+            }
+            if (menuSelect < 0) {
+                menuSelect = roomList.length();
+            }
+            if (menuSelect >= roomList.length()) {
+                menuSelect = 0;
+            }
+            if (KEY_BUTTON[GLFW.GLFW_KEY_ENTER] == 1) {
+                return menuSelect + 1;
+            }
+        }
+        return 0;
+    }
+    int showJoinedRoom() {
+        if(memberUpdated){
+            updateMember();
+        }
+        glBegin(GL_TRIANGLE_FAN);
+        glColor4d(0.8, 0.8, 1, 1);
+        glVertex2d(-1, -1);
+        glVertex2d(-1, 1);
+        glVertex2d(1, 1);
+        glVertex2d(1, -1);
+        glEnd();
+        if (myRoomImage == -1) {
+            if (myRoomName != null) {
+                myRoomImage = Texture.drawStrImage(myRoomName).getId();
+            }
+        } else {
+            double y = 0.5;
+
+            glBindTexture(GL_TEXTURE_2D, myRoomImage);
+            GL11.glEnable(GL11.GL_TEXTURE_2D);
+            GL11.glBegin(GL11.GL_QUADS);
+            GL11.glTexCoord2d(0, 0);
+            GL11.glVertex2d(-0.6, y);
+            GL11.glTexCoord2d(0, 1);
+            GL11.glVertex2d(-0.6, y - 0.2);
+            GL11.glTexCoord2d(1, 1);
+            GL11.glVertex2d(0, y - 0.2);
+            GL11.glTexCoord2d(1, 0);
+            GL11.glVertex2d(0, y);
+            GL11.glEnd();
+            y = 0;
+            for (int n : roomMemberImage) {
                 glBindTexture(GL_TEXTURE_2D, n);
                 GL11.glEnable(GL11.GL_TEXTURE_2D);
                 GL11.glBegin(GL11.GL_QUADS);
-                GL11.glTexCoord2d(0,0);
+                GL11.glTexCoord2d(0, 0);
                 GL11.glVertex2d(-0.6, y);
-                GL11.glTexCoord2d(0,1);
-                GL11.glVertex2d(-0.6, y-0.1);
-                GL11.glTexCoord2d(1,1);
-                GL11.glVertex2d(-0.3, y-0.1);
-                GL11.glTexCoord2d(1,0);
+                GL11.glTexCoord2d(0, 1);
+                GL11.glVertex2d(-0.6, y - 0.1);
+                GL11.glTexCoord2d(1, 1);
+                GL11.glVertex2d(-0.3, y - 0.1);
+                GL11.glTexCoord2d(1, 0);
                 GL11.glVertex2d(-0.3, y);
                 GL11.glEnd();
-                y-=0.1;
+                y -= 0.1;
             }
         }
         return 0;
