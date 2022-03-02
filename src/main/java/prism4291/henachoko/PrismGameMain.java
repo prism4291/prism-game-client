@@ -383,7 +383,7 @@ public class PrismGameMain {
                 y -= 0.1;
             }
             y=0.9-0.1*menuSelect;
-            GL11.glColor4d(1,0,0,Math.sin(fuse*0.04));
+            GL11.glColor4d(1,0,0,Math.abs(Math.sin(fuse*0.04)));
             GL11.glBegin(GL_TRIANGLE_FAN);
             GL11.glVertex2d(-0.64, y-0.02);
             GL11.glVertex2d(-0.64, y - 0.08);
