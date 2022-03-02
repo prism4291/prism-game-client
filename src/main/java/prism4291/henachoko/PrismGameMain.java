@@ -56,6 +56,37 @@ public class PrismGameMain {
         myRoomName = null;
         roomMemberImage=new ArrayList<>();
         memberUpdated=false;
+        PrismGameVariable.socket.on("serverCreateRoomRes", objects -> {
+            JSONObject jo = (JSONObject) objects[0];
+            System.out.println(jo);
+            myRoomName = jo.getString("name");
+            roomJoined = true;
+            currentRoom=jo.getJSONObject("room");
+            memberUpdated=true;
+        });
+        PrismGameVariable.socket.on("serverGetRoomRes", objects -> {
+            JSONObject jo = (JSONObject) objects[0];
+            System.out.println(jo);
+            roomList = jo.getJSONArray("rooms");
+
+        });
+        PrismGameVariable.socket.on("serverJoinRoomRes", objects -> {
+            JSONObject jo = (JSONObject) objects[0];
+            System.out.println(jo);
+            if (jo.getString("status").equals("success")) {
+                roomJoined = true;
+                myRoomName = jo.getJSONObject("room").getString("name");
+                currentRoom=jo.getJSONObject("room");
+                memberUpdated=true;
+            }
+
+        });
+        PrismGameVariable.socket.on("serverRoomMessage", objects -> {
+            JSONObject jo = (JSONObject) objects[0];
+            if(!jo.getString("from").equals(socketId)) {
+                System.out.println(jo.getString("from"));
+            }
+        });
     }
 
     void Main() {
@@ -75,36 +106,13 @@ public class PrismGameMain {
             int res = showMenu();
             if (res == 1) {
                 seq = 2;
-                PrismGameVariable.socket.on("serverCreateRoomRes", objects -> {
-                    JSONObject jo = (JSONObject) objects[0];
-                    System.out.println(jo);
-                    myRoomName = jo.getString("name");
-                    roomJoined = true;
-                    currentRoom=jo.getJSONObject("room");
-                    memberUpdated=true;
-                });
+
                 PrismGameVariable.socket.emit("clientCreateRoom");
 
             }
             if (res == 2) {
                 seq = 3;
-                PrismGameVariable.socket.on("serverGetRoomRes", objects -> {
-                    JSONObject jo = (JSONObject) objects[0];
-                    System.out.println(jo);
-                    roomList = jo.getJSONArray("rooms");
 
-                });
-                PrismGameVariable.socket.on("serverJoinRoomRes", objects -> {
-                    JSONObject jo = (JSONObject) objects[0];
-                    System.out.println(jo);
-                    if (jo.getString("status").equals("success")) {
-                        roomJoined = true;
-                        myRoomName = jo.getJSONObject("room").getString("name");
-                        currentRoom=jo.getJSONObject("room");
-                        memberUpdated=true;
-                    }
-
-                });
                 menuSelect=0;
                 PrismGameVariable.socket.emit("clientGetRoom");
             }
@@ -151,6 +159,9 @@ public class PrismGameMain {
         glVertex2d(1, 1);
         glVertex2d(1, -1);
         glEnd();
+        JSONObject msg=new JSONObject();
+        msg.put("from",socketId);
+        PrismGameVariable.socket.emit("clientRoomMessage", msg);
         return 0;
     }
     void updateMember(){
