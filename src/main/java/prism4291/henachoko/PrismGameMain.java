@@ -9,7 +9,9 @@ import org.lwjgl.stb.STBImage;
 
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.*;
 import static prism4291.henachoko.PrismGameVariable.*;
@@ -27,6 +29,40 @@ public class PrismGameMain {
     JSONObject currentRoom;
     List<Integer> roomMemberImage;
     boolean memberUpdated;
+    static final int pWidth=6;
+    static final int pHeight=14;
+    static final int puyos=4;
+    List<List<Integer>> board;
+    String mode;
+    boolean puyoMoving;
+    int playSequence;//0:move 1:kesu
+
+    class Puyopuyo{
+        int mainColor;
+        int subColor;
+        int muki;
+        int puyoX;
+        int puyoY;
+        double puyoMoveX;
+        double puyoMoveY;
+        int cooldown;
+        double beforeX;
+        double beforeY;
+        double deltaX;
+        double deltaY;
+        int deltaCount;
+        Puyopuyo(int color1,int color2){
+            mainColor=color1;
+            subColor=color2;
+            muki=0;
+            puyoMoveX=2;
+            puyoMoveY=1.5;
+            puyoX=2;
+            puyoY=2;
+            cooldown=0;
+        }
+    }
+    Puyopuyo puyopuyo;
     PrismGameMain() {
         fuse = 0;
         seq = 0;
@@ -36,7 +72,16 @@ public class PrismGameMain {
         menuSelect = 0;
         roomJoined = false;
         gameStarting = false;
-
+        board=new ArrayList<>();
+        for(int i=0;i<pHeight;i++){
+            board.add(new ArrayList<>());
+            for(int j=0;j<pWidth;j++){
+                board.get(i).add(0);
+            }
+        }
+        puyoMoving=false;
+        mode="start";
+        playSequence=0;
         PrismGameVariable.socket.on("serverStartGame", objects -> {
             JSONObject jo = (JSONObject) objects[0];
             System.out.println(jo);
@@ -159,11 +204,17 @@ public class PrismGameMain {
         glVertex2d(1, 1);
         glVertex2d(1, -1);
         glEnd();
+        puyoLoop();
         JSONObject msg=new JSONObject();
         msg.put("from",socketId);
         PrismGameVariable.socket.emit("clientRoomMessage", msg);
         return 0;
     }
+
+    void puyoLoop(){
+
+    }
+
     void updateMember(){
         for(int n:roomMemberImage){
             glDeleteTextures(n);
