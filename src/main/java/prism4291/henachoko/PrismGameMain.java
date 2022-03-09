@@ -4,14 +4,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.stb.STBImage;
 
 
-import java.nio.DoubleBuffer;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.*;
 import static prism4291.henachoko.PrismGameVariable.*;
@@ -31,41 +27,16 @@ public class PrismGameMain {
     boolean memberUpdated;
     static final int pWidth=6;
     static final int pHeight=14;
-    static final int puyos=4;
     List<List<Integer>> board;
     String mode;
     boolean puyoMoving;
     int playSequence;//0:move 1:kesu
-
-    class Puyopuyo{
-        int mainColor;
-        int subColor;
-        int muki;
-        int puyoX;
-        int puyoY;
-        double puyoMoveX;
-        double puyoMoveY;
-        int cooldown;
-        double beforeX;
-        double beforeY;
-        double deltaX;
-        double deltaY;
-        int deltaCount;
-        Puyopuyo(int color1,int color2){
-            mainColor=color1;
-            subColor=color2;
-            muki=0;
-            puyoMoveX=2;
-            puyoMoveY=1.5;
-            puyoX=2;
-            puyoY=2;
-            cooldown=0;
-        }
-    }
-    Puyopuyo puyopuyo;
+    PrismGamePuyopuyo prismGamePuyopuyo;
     PrismGameMain() {
         fuse = 0;
-        seq = 0;
+        //
+        seq = 5;
+        //
         images.put("title", Texture.loadTexture("/title.png"));
         images.put("host", Texture.loadTexture("/host.png"));
         images.put("guest", Texture.loadTexture("/guest.png"));
@@ -130,11 +101,13 @@ public class PrismGameMain {
             JSONObject jo = (JSONObject) objects[0];
             if(!jo.getString("from").equals(socketId)) {
                 System.out.println(jo.getString("from"));
+                prismGamePuyopuyo.updateData(jo);
             }
         });
     }
 
     void Main() {
+
         fuse++;
         if (socketId == null) {
             return;
@@ -169,6 +142,7 @@ public class PrismGameMain {
             }
             if (gameStarting) {
                 seq = 5;
+
             }
         } else if (seq == 3) {
             int res = showGuest();
@@ -187,8 +161,12 @@ public class PrismGameMain {
             int res=showJoinedRoom();
             if (gameStarting) {
                 seq = 5;
+
             }
         } else if (seq == 5) {
+            if(prismGamePuyopuyo==null){
+                prismGamePuyopuyo=new PrismGamePuyopuyo();
+            }
             int res = MainGame();
 
         }
@@ -197,23 +175,16 @@ public class PrismGameMain {
     }
 
     int MainGame() {
-        glBegin(GL_TRIANGLE_FAN);
-        glColor4d(1, 1, 1, 1);
-        glVertex2d(-1, -1);
-        glVertex2d(-1, 1);
-        glVertex2d(1, 1);
-        glVertex2d(1, -1);
-        glEnd();
-        puyoLoop();
+
+        int res=prismGamePuyopuyo.PuyoLoop();
         JSONObject msg=new JSONObject();
         msg.put("from",socketId);
-        PrismGameVariable.socket.emit("clientRoomMessage", msg);
+        msg.put("data",prismGamePuyopuyo.getData());
+        PrismGameVariable.socket.emit("clientRoomMessage",msg );
         return 0;
     }
 
-    void puyoLoop(){
 
-    }
 
     void updateMember(){
         for(int n:roomMemberImage){
