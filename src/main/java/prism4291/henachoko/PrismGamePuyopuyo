@@ -1,0 +1,98 @@
+package prism4291.henachoko;
+
+import org.json.JSONObject;
+
+import static org.lwjgl.opengl.GL11.*;
+
+public class PrismGamePuyopuyo {
+    String status;
+    Puyopuyo currentPuyo;
+    PrismGamePuyopuyo(){
+        status="ready";
+        status="go";
+    }
+    static class Puyopuyo {
+        int mainColor;
+        int subColor;
+        int muki;
+        int puyoX;
+        int puyoY;
+        double puyoMoveX;
+        double puyoMoveY;
+        int cooldown;
+        double beforeX;
+        double beforeY;
+        double deltaX;
+        double deltaY;
+        int deltaCount;
+
+        Puyopuyo(int color1, int color2) {
+            mainColor = color1;
+            subColor = color2;
+            muki = 0;
+            puyoMoveX = 2;
+            puyoMoveY = 1.5;
+            puyoX = 2;
+            puyoY = 2;
+            cooldown = 0;
+        }
+        void move(){
+            puyoMoveY+=0.001;
+        }
+    }
+    int PuyoLoop(){
+        switch (status){
+            case "go":
+                status="summon";
+                break;
+            case "summon":
+                currentPuyo=new Puyopuyo(0,0);
+                status="move";
+                break;
+            case "move":
+                currentPuyo.move();
+        }
+        draw();
+        return 0;
+    }
+
+    String getData(){
+        return "";
+    }
+    void updateData(JSONObject obj){
+
+    }
+    void draw(){
+        glBegin(GL_TRIANGLE_FAN);
+        glColor4d(1, 1, 1, 1);
+        glVertex2d(-1, -1);
+        glVertex2d(-1, 1);
+        glVertex2d(1, 1);
+        glVertex2d(1, -1);
+        glEnd();
+//field
+        glBegin(GL_QUADS);
+        glColor4d(0.8,1,0.8,1);
+        glVertex2d(calWinX(0,0),calWinY(2));
+        glVertex2d(calWinX(0,0),calWinY(14));
+        glVertex2d(calWinX(6,0),calWinY(14));
+        glVertex2d(calWinX(6,0),calWinY(2));
+        glEnd();
+        //current puyo
+        if(currentPuyo!=null) {
+            glBegin(GL_QUADS);
+            glColor4d(1, 0, 0, 1);
+            glVertex2d(calWinX(currentPuyo.puyoMoveX, 0), calWinY(currentPuyo.puyoMoveY + 1));
+            glVertex2d(calWinX(currentPuyo.puyoMoveX + 1, 0), calWinY(currentPuyo.puyoMoveY));
+            glVertex2d(calWinX(currentPuyo.puyoMoveX + 1, 0), calWinY(currentPuyo.puyoMoveY));
+            glVertex2d(calWinX(currentPuyo.puyoMoveX, 0), calWinY(currentPuyo.puyoMoveY + 1));
+            glEnd();
+        }
+    }
+    double calWinX(double x,int n){
+        return -1+x*9.0/120+0.2;
+    }
+    double calWinY(double y){
+        return 1-y*16.0/120+0.2;
+    }
+}
