@@ -5,7 +5,7 @@ import org.json.JSONObject;
 import static org.lwjgl.opengl.GL11.*;
 
 public class PrismGamePuyopuyo {
-    String status;
+    static String status;
     Puyopuyo currentPuyo;
     PrismGamePuyopuyo(){
         status="ready";
@@ -20,24 +20,33 @@ public class PrismGamePuyopuyo {
         double puyoMoveX;
         double puyoMoveY;
         int cooldown;
-        double beforeX;
-        double beforeY;
-        double deltaX;
-        double deltaY;
+        int frameX;
+        int frameY;
+        int frameMaxX;
+        int frameMaxY;
         int deltaCount;
+        int puyoMaxY=14;
+        int puyoMaxX=6;
 
         Puyopuyo(int color1, int color2) {
             mainColor = color1;
             subColor = color2;
             muki = 0;
-            puyoMoveX = 2;
-            puyoMoveY = 1.5;
+            puyoMoveX = 0;
+            puyoMoveY = 1;
+            frameMaxX=1;
+            frameMaxY=40;
+            frameY=20;
+            frameX=0;
             puyoX = 2;
             puyoY = 2;
             cooldown = 0;
         }
         void move(){
-            puyoMoveY+=0.001;
+            frameY+=1;
+            if(frameY>=frameMaxY){
+                status="check";
+            }
         }
     }
     int PuyoLoop(){
@@ -51,7 +60,29 @@ public class PrismGamePuyopuyo {
                 break;
             case "move":
                 currentPuyo.move();
+                break;
+            case "check":
+                if(currentPuyo.puyoY<currentPuyo.puyoMaxY-1){
+                    currentPuyo.puyoY+=1;
+                    currentPuyo.puyoMoveY=1;
+                    currentPuyo.frameY=0;
+                    currentPuyo.frameMaxY=40;
+                    status="move";
+                    currentPuyo.move();
+                }else{
+                    status="fall";
+                }
+
+                break;
+            case "fall":
+                status="kesu";
+                break;
+            case "kesu":
+
+                status="summon";
+                break;
         }
+        System.out.println(status);
         draw();
         return 0;
     }
@@ -82,17 +113,18 @@ public class PrismGamePuyopuyo {
         if(currentPuyo!=null) {
             glBegin(GL_QUADS);
             glColor4d(1, 0, 0, 1);
-            glVertex2d(calWinX(currentPuyo.puyoMoveX, 0), calWinY(currentPuyo.puyoMoveY + 1));
-            glVertex2d(calWinX(currentPuyo.puyoMoveX + 1, 0), calWinY(currentPuyo.puyoMoveY));
-            glVertex2d(calWinX(currentPuyo.puyoMoveX + 1, 0), calWinY(currentPuyo.puyoMoveY));
-            glVertex2d(calWinX(currentPuyo.puyoMoveX, 0), calWinY(currentPuyo.puyoMoveY + 1));
+            glVertex2d(calWinX(currentPuyo.puyoX- currentPuyo.puyoMoveX+ currentPuyo.puyoMoveX* currentPuyo.frameX/ currentPuyo.frameMaxX, 0), calWinY(currentPuyo.puyoY- currentPuyo.puyoMoveY+ currentPuyo.puyoMoveY* currentPuyo.frameY/ currentPuyo.frameMaxY));
+            glVertex2d(calWinX(currentPuyo.puyoX- currentPuyo.puyoMoveX+ currentPuyo.puyoMoveX* currentPuyo.frameX/ currentPuyo.frameMaxX , 0), calWinY(currentPuyo.puyoY- currentPuyo.puyoMoveY+ currentPuyo.puyoMoveY* currentPuyo.frameY/ currentPuyo.frameMaxY+1));
+            glVertex2d(calWinX(currentPuyo.puyoX- currentPuyo.puyoMoveX+ currentPuyo.puyoMoveX* currentPuyo.frameX/ currentPuyo.frameMaxX+ 1, 0), calWinY(currentPuyo.puyoY- currentPuyo.puyoMoveY+ currentPuyo.puyoMoveY* currentPuyo.frameY/ currentPuyo.frameMaxY+1));
+            glVertex2d(calWinX(currentPuyo.puyoX- currentPuyo.puyoMoveX+ currentPuyo.puyoMoveX* currentPuyo.frameX/ currentPuyo.frameMaxX+1, 0), calWinY(currentPuyo.puyoY- currentPuyo.puyoMoveY+ currentPuyo.puyoMoveY* currentPuyo.frameY/ currentPuyo.frameMaxY));
             glEnd();
+            System.out.println(currentPuyo.puyoY);
         }
     }
     double calWinX(double x,int n){
         return -1+x*9.0/120+0.2;
     }
     double calWinY(double y){
-        return 1-y*16.0/120+0.2;
+        return 1-y*16.0/120+0.1;
     }
 }
