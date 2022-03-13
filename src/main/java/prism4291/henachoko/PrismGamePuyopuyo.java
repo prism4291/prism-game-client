@@ -2,14 +2,19 @@ package prism4291.henachoko;
 
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.lwjgl.opengl.GL11.*;
 
 public class PrismGamePuyopuyo {
     static String status;
     Puyopuyo currentPuyo;
+    List<Puyopuyo> puyos;
     PrismGamePuyopuyo(){
         status="ready";
         status="go";
+        puyos=new ArrayList<>();
     }
     static class Puyopuyo {
         int mainColor;
@@ -75,6 +80,7 @@ public class PrismGamePuyopuyo {
 
                 break;
             case "fall":
+                puyos.add(currentPuyo);
                 status="kesu";
                 break;
             case "kesu":
@@ -82,7 +88,7 @@ public class PrismGamePuyopuyo {
                 status="summon";
                 break;
         }
-        System.out.println(status);
+        //System.out.println(status);
         draw();
         return 0;
     }
@@ -118,7 +124,16 @@ public class PrismGamePuyopuyo {
             glVertex2d(calWinX(currentPuyo.puyoX- currentPuyo.puyoMoveX+ currentPuyo.puyoMoveX* currentPuyo.frameX/ currentPuyo.frameMaxX+ 1, 0), calWinY(currentPuyo.puyoY- currentPuyo.puyoMoveY+ currentPuyo.puyoMoveY* currentPuyo.frameY/ currentPuyo.frameMaxY+1));
             glVertex2d(calWinX(currentPuyo.puyoX- currentPuyo.puyoMoveX+ currentPuyo.puyoMoveX* currentPuyo.frameX/ currentPuyo.frameMaxX+1, 0), calWinY(currentPuyo.puyoY- currentPuyo.puyoMoveY+ currentPuyo.puyoMoveY* currentPuyo.frameY/ currentPuyo.frameMaxY));
             glEnd();
-            System.out.println(currentPuyo.puyoY);
+            //System.out.println(currentPuyo.puyoY);
+        }
+        for(Puyopuyo puyo:puyos){
+            glBegin(GL_QUADS);
+            glColor4d(1, 0, 0, 1);
+            glVertex2d(calWinX(puyo.puyoX- puyo.puyoMoveX+ puyo.puyoMoveX* puyo.frameX/ puyo.frameMaxX, 0), calWinY(puyo.puyoY- puyo.puyoMoveY+ puyo.puyoMoveY* puyo.frameY/ puyo.frameMaxY));
+            glVertex2d(calWinX(puyo.puyoX- puyo.puyoMoveX+ puyo.puyoMoveX* puyo.frameX/ puyo.frameMaxX , 0), calWinY(puyo.puyoY- puyo.puyoMoveY+ puyo.puyoMoveY* puyo.frameY/ puyo.frameMaxY+1));
+            glVertex2d(calWinX(puyo.puyoX- puyo.puyoMoveX+ puyo.puyoMoveX* puyo.frameX/ puyo.frameMaxX+ 1, 0), calWinY(puyo.puyoY- puyo.puyoMoveY+ puyo.puyoMoveY* puyo.frameY/ puyo.frameMaxY+1));
+            glVertex2d(calWinX(puyo.puyoX- puyo.puyoMoveX+ puyo.puyoMoveX* puyo.frameX/ puyo.frameMaxX+1, 0), calWinY(puyo.puyoY- puyo.puyoMoveY+ puyo.puyoMoveY* puyo.frameY/ puyo.frameMaxY));
+            glEnd();
         }
     }
     double calWinX(double x,int n){

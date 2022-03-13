@@ -23,7 +23,7 @@ public class PrismGameWindow {
         while (!GLFW.glfwWindowShouldClose(PrismGameVariable.WIN)) {
             currentTime = System.currentTimeMillis();
             if (currentTime >= FPSFrom + (secondFromStart + 1) * 1000) {
-                System.out.println(PrismGameVariable.CURRENT_FPS);
+                System.out.println("FPS : "+PrismGameVariable.CURRENT_FPS);
                 PrismGameVariable.CURRENT_FPS = 0;
                 secondFromStart++;
                 //System.out.println(Arrays.toString(Variable.MOUSE_BUTTON));
