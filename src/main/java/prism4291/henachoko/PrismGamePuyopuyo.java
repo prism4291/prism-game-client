@@ -3,40 +3,53 @@ package prism4291.henachoko;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.*;
 
 public class PrismGamePuyopuyo {
     static String status;
     Puyopuyo currentPuyo;
+    Puyopuyo currentPuyoSub;
     List<Puyopuyo> puyos;
+    Map<Integer,Puyopuyo> backPuyos;
+    static int puyoMaxY=14;
+    static int puyoMaxX=6;
+    int muki;
+    double theta;
+
+
     PrismGamePuyopuyo(){
         status="ready";
         status="go";
         puyos=new ArrayList<>();
+        muki = 3;
+        theta=Math.PI*1.5;
+        backPuyos=new HashMap<>();
+    }
+    void createPuyo(int color1, int color2){
+        currentPuyo=new Puyopuyo(color1);
+        currentPuyoSub=new Puyopuyo(color2);
+
     }
     static class Puyopuyo {
-        int mainColor;
-        int subColor;
-        int muki;
+        int puyoColor;
+
         int puyoX;
         int puyoY;
         double puyoMoveX;
         double puyoMoveY;
-        int cooldown;
         int frameX;
         int frameY;
         int frameMaxX;
         int frameMaxY;
-        int deltaCount;
-        int puyoMaxY=14;
-        int puyoMaxX=6;
 
-        Puyopuyo(int color1, int color2) {
-            mainColor = color1;
-            subColor = color2;
-            muki = 0;
+
+        Puyopuyo(int color) {
+            puyoColor = color;
+
             puyoMoveX = 0;
             puyoMoveY = 1;
             frameMaxX=1;
@@ -45,7 +58,6 @@ public class PrismGamePuyopuyo {
             frameX=0;
             puyoX = 2;
             puyoY = 2;
-            cooldown = 0;
         }
         void move(){
             frameY+=1;
@@ -60,27 +72,35 @@ public class PrismGamePuyopuyo {
                 status="summon";
                 break;
             case "summon":
-                currentPuyo=new Puyopuyo(0,0);
+                createPuyo(0,0);
                 status="move";
                 break;
             case "move":
                 currentPuyo.move();
+
                 break;
             case "check":
-                if(currentPuyo.puyoY<currentPuyo.puyoMaxY-1){
-                    currentPuyo.puyoY+=1;
-                    currentPuyo.puyoMoveY=1;
-                    currentPuyo.frameY=0;
-                    currentPuyo.frameMaxY=40;
+                System.out.println("check "+currentPuyo.frameY);
+                currentPuyo.puyoY+=1;
+                currentPuyo.puyoMoveY=1;
+                currentPuyo.frameY=0;
+                currentPuyo.frameMaxY=40;
+                setSubPuyoXY(currentPuyo,currentPuyoSub);
+                if(currentPuyo.puyoY<puyoMaxY&&backPuyos.get(calPuyoMap(currentPuyo.puyoX,currentPuyo.puyoY+1))==null){
                     status="move";
                     currentPuyo.move();
                 }else{
                     status="fall";
+                    puyos.add(currentPuyo);
+                    puyos.add(currentPuyoSub);
+                    backPuyos.put(calPuyoMap(currentPuyo.puyoX,currentPuyo.puyoY),currentPuyo);
+                    backPuyos.put(calPuyoMap(currentPuyo.puyoX,currentPuyo.puyoY),currentPuyoSub);
+                    currentPuyo=null;
+                    currentPuyoSub=null;
                 }
 
                 break;
             case "fall":
-                puyos.add(currentPuyo);
                 status="kesu";
                 break;
             case "kesu":
@@ -92,7 +112,21 @@ public class PrismGamePuyopuyo {
         draw();
         return 0;
     }
-
+    int calPuyoMap(int x,int y){
+        return y*puyoMaxX+x;
+    }
+    void setSubPuyoXY(Puyopuyo main,Puyopuyo sub){
+        sub.puyoX=main.puyoX;
+        sub.puyoY=main.puyoY;
+        switch (muki) {
+            case 0 -> sub.puyoX += 1;
+            case 1 -> sub.puyoY += 1;
+            case 2 -> sub.puyoX -= 1;
+            case 3 -> sub.puyoY -= 1;
+        }
+        sub.frameX=0;
+        sub.frameY=0;
+    }
     String getData(){
         return "";
     }
@@ -117,24 +151,35 @@ public class PrismGamePuyopuyo {
         glEnd();
         //current puyo
         if(currentPuyo!=null) {
-            glBegin(GL_QUADS);
-            glColor4d(1, 0, 0, 1);
-            glVertex2d(calWinX(currentPuyo.puyoX- currentPuyo.puyoMoveX+ currentPuyo.puyoMoveX* currentPuyo.frameX/ currentPuyo.frameMaxX, 0), calWinY(currentPuyo.puyoY- currentPuyo.puyoMoveY+ currentPuyo.puyoMoveY* currentPuyo.frameY/ currentPuyo.frameMaxY));
-            glVertex2d(calWinX(currentPuyo.puyoX- currentPuyo.puyoMoveX+ currentPuyo.puyoMoveX* currentPuyo.frameX/ currentPuyo.frameMaxX , 0), calWinY(currentPuyo.puyoY- currentPuyo.puyoMoveY+ currentPuyo.puyoMoveY* currentPuyo.frameY/ currentPuyo.frameMaxY+1));
-            glVertex2d(calWinX(currentPuyo.puyoX- currentPuyo.puyoMoveX+ currentPuyo.puyoMoveX* currentPuyo.frameX/ currentPuyo.frameMaxX+ 1, 0), calWinY(currentPuyo.puyoY- currentPuyo.puyoMoveY+ currentPuyo.puyoMoveY* currentPuyo.frameY/ currentPuyo.frameMaxY+1));
-            glVertex2d(calWinX(currentPuyo.puyoX- currentPuyo.puyoMoveX+ currentPuyo.puyoMoveX* currentPuyo.frameX/ currentPuyo.frameMaxX+1, 0), calWinY(currentPuyo.puyoY- currentPuyo.puyoMoveY+ currentPuyo.puyoMoveY* currentPuyo.frameY/ currentPuyo.frameMaxY));
-            glEnd();
-            //System.out.println(currentPuyo.puyoY);
+            drawPuyo(currentPuyo);
+            if(currentPuyoSub!=null){
+                drawPuyoSub(currentPuyo,currentPuyoSub,theta);
+            }
         }
+
         for(Puyopuyo puyo:puyos){
-            glBegin(GL_QUADS);
-            glColor4d(1, 0, 0, 1);
-            glVertex2d(calWinX(puyo.puyoX- puyo.puyoMoveX+ puyo.puyoMoveX* puyo.frameX/ puyo.frameMaxX, 0), calWinY(puyo.puyoY- puyo.puyoMoveY+ puyo.puyoMoveY* puyo.frameY/ puyo.frameMaxY));
-            glVertex2d(calWinX(puyo.puyoX- puyo.puyoMoveX+ puyo.puyoMoveX* puyo.frameX/ puyo.frameMaxX , 0), calWinY(puyo.puyoY- puyo.puyoMoveY+ puyo.puyoMoveY* puyo.frameY/ puyo.frameMaxY+1));
-            glVertex2d(calWinX(puyo.puyoX- puyo.puyoMoveX+ puyo.puyoMoveX* puyo.frameX/ puyo.frameMaxX+ 1, 0), calWinY(puyo.puyoY- puyo.puyoMoveY+ puyo.puyoMoveY* puyo.frameY/ puyo.frameMaxY+1));
-            glVertex2d(calWinX(puyo.puyoX- puyo.puyoMoveX+ puyo.puyoMoveX* puyo.frameX/ puyo.frameMaxX+1, 0), calWinY(puyo.puyoY- puyo.puyoMoveY+ puyo.puyoMoveY* puyo.frameY/ puyo.frameMaxY));
-            glEnd();
+            drawPuyo(puyo);
         }
+    }
+    void drawPuyo(Puyopuyo puyo){
+        glBegin(GL_QUADS);
+        glColor4d(1, 0, 0, 1);
+        glVertex2d(calWinX(puyo.puyoX- puyo.puyoMoveX+ puyo.puyoMoveX* puyo.frameX/ puyo.frameMaxX, 0), calWinY(puyo.puyoY- puyo.puyoMoveY+ puyo.puyoMoveY* puyo.frameY/ puyo.frameMaxY));
+        glVertex2d(calWinX(puyo.puyoX- puyo.puyoMoveX+ puyo.puyoMoveX* puyo.frameX/ puyo.frameMaxX , 0), calWinY(puyo.puyoY- puyo.puyoMoveY+ puyo.puyoMoveY* puyo.frameY/ puyo.frameMaxY+1));
+        glVertex2d(calWinX(puyo.puyoX- puyo.puyoMoveX+ puyo.puyoMoveX* puyo.frameX/ puyo.frameMaxX+ 1, 0), calWinY(puyo.puyoY- puyo.puyoMoveY+ puyo.puyoMoveY* puyo.frameY/ puyo.frameMaxY+1));
+        glVertex2d(calWinX(puyo.puyoX- puyo.puyoMoveX+ puyo.puyoMoveX* puyo.frameX/ puyo.frameMaxX+1, 0), calWinY(puyo.puyoY- puyo.puyoMoveY+ puyo.puyoMoveY* puyo.frameY/ puyo.frameMaxY));
+        glEnd();
+
+    }
+    void drawPuyoSub(Puyopuyo puyo,Puyopuyo sub,double t){
+        glBegin(GL_QUADS);
+        glColor4d(1, 0, 0, 1);
+        glVertex2d(calWinX(puyo.puyoX- puyo.puyoMoveX+ puyo.puyoMoveX* puyo.frameX/ puyo.frameMaxX+Math.cos(t), 0), calWinY(puyo.puyoY- puyo.puyoMoveY+ puyo.puyoMoveY* puyo.frameY/ puyo.frameMaxY+Math.sin(t)));
+        glVertex2d(calWinX(puyo.puyoX- puyo.puyoMoveX+ puyo.puyoMoveX* puyo.frameX/ puyo.frameMaxX +Math.cos(t), 0), calWinY(puyo.puyoY- puyo.puyoMoveY+ puyo.puyoMoveY* puyo.frameY/ puyo.frameMaxY+1+Math.sin(t)));
+        glVertex2d(calWinX(puyo.puyoX- puyo.puyoMoveX+ puyo.puyoMoveX* puyo.frameX/ puyo.frameMaxX+ 1+Math.cos(t), 0), calWinY(puyo.puyoY- puyo.puyoMoveY+ puyo.puyoMoveY* puyo.frameY/ puyo.frameMaxY+1+Math.sin(t)));
+        glVertex2d(calWinX(puyo.puyoX- puyo.puyoMoveX+ puyo.puyoMoveX* puyo.frameX/ puyo.frameMaxX+1+Math.cos(t), 0), calWinY(puyo.puyoY- puyo.puyoMoveY+ puyo.puyoMoveY* puyo.frameY/ puyo.frameMaxY+Math.sin(t)));
+        glEnd();
+
     }
     double calWinX(double x,int n){
         return -1+x*9.0/120+0.2;
