@@ -17,9 +17,11 @@ public class PrismGamePuyopuyo {
     Map<Integer,Puyopuyo> backPuyos;
     static int puyoMaxY=14;
     static int puyoMaxX=6;
+    static int delayMax=50;
     int muki;
     double theta;
-
+    int delay;
+    boolean canFall;
 
     PrismGamePuyopuyo(){
         status="ready";
@@ -28,6 +30,8 @@ public class PrismGamePuyopuyo {
         muki = 3;
         theta=Math.PI*1.5;
         backPuyos=new HashMap<>();
+        delay=0;
+        canFall=false;
     }
     void createPuyo(int color1, int color2){
         currentPuyo=new Puyopuyo(color1);
@@ -59,12 +63,21 @@ public class PrismGamePuyopuyo {
             puyoX = 2;
             puyoY = 2;
         }
-        void move(){
-            frameY+=1;
-            if(frameY>=frameMaxY){
+    }
+    void move(Puyopuyo puyo){
+        if(canFall){
+            puyo.frameY+=1;
+            if(puyo.frameY>=frameMaxY){
                 status="check";
             }
+        }else{
+            delay+=1;
+            if(delay>delayMax){
+                status="fallStart";
+            }
+            
         }
+        
     }
     int PuyoLoop(){
         switch (status){
@@ -73,32 +86,40 @@ public class PrismGamePuyopuyo {
                 break;
             case "summon":
                 createPuyo(0,0);
+                delay=0;
+                canFall=true;
                 status="move";
                 break;
             case "move":
-                currentPuyo.move();
+                move(currentPuyo);
 
                 break;
             case "check":
                 System.out.println("check "+currentPuyo.frameY);
-                currentPuyo.puyoY+=1;
-                currentPuyo.puyoMoveY=1;
                 currentPuyo.frameY=0;
-                currentPuyo.frameMaxY=40;
                 setSubPuyoXY(currentPuyo,currentPuyoSub);
-                if(currentPuyo.puyoY<puyoMaxY&&backPuyos.get(calPuyoMap(currentPuyo.puyoX,currentPuyo.puyoY+1))==null){
+                if(currentPuyo.puyoY<puyoMaxY&&backPuyos.get(calPuyoMap(currentPuyo.puyoX,currentPuyo.puyoY+1))==null&&backPuyos.get(calPuyoMap(currentPuyoSub.puyoX,currentPuyoSub.puyoY+1))==null){
+                    currentPuyo.frameMaxY=40;
+                    currentPuyo.puyoY+=1;
+                    currentPuyo.puyoMoveY=1;
+                
+                    setSubPuyoXY(currentPuyo,currentPuyoSub);
                     status="move";
-                    currentPuyo.move();
+                    move(currentPuyo);
                 }else{
-                    status="fall";
-                    puyos.add(currentPuyo);
-                    puyos.add(currentPuyoSub);
-                    backPuyos.put(calPuyoMap(currentPuyo.puyoX,currentPuyo.puyoY),currentPuyo);
-                    backPuyos.put(calPuyoMap(currentPuyo.puyoX,currentPuyo.puyoY),currentPuyoSub);
-                    currentPuyo=null;
-                    currentPuyoSub=null;
+                    canFall=false;
+                    
                 }
 
+                break;
+            case "fallStart":
+                puyos.add(currentPuyo);
+                puyos.add(currentPuyoSub);
+                backPuyos.put(calPuyoMap(currentPuyo.puyoX,currentPuyo.puyoY),currentPuyo);
+                backPuyos.put(calPuyoMap(currentPuyo.puyoX,currentPuyo.puyoY),currentPuyoSub);
+                currentPuyo=null;
+                currentPuyoSub=null;
+                status="fall";
                 break;
             case "fall":
                 status="kesu";
