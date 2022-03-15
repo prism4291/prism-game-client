@@ -76,9 +76,11 @@ public class PrismGameWindow {
             PrismGameVariable.CURRENT_HEIGHT = hh;
         });
         GLFW.glfwSetMouseButtonCallback(WIN, (win, button, action, mods) -> {
-            switch (action) {
-                case GLFW.GLFW_PRESS -> PrismGameVariable.MOUSE_BUTTON[button] = 1;
-                case GLFW.GLFW_RELEASE -> PrismGameVariable.MOUSE_BUTTON[button] = -PrismGameVariable.MOUSE_BUTTON[button];
+            if(button>=0) {
+                switch (action) {
+                    case GLFW.GLFW_PRESS -> PrismGameVariable.MOUSE_BUTTON[button] = 1;
+                    case GLFW.GLFW_RELEASE -> PrismGameVariable.MOUSE_BUTTON[button] = -PrismGameVariable.MOUSE_BUTTON[button];
+                }
             }
             //System.out.println(Variable.MOUSE_BUTTON[button]);
         });
@@ -89,9 +91,12 @@ public class PrismGameWindow {
         GLFW.glfwSetKeyCallback(WIN, new GLFWKeyCallback() {
             @Override
             public void invoke(long win, int key, int code, int action, int mods) {
-                switch (action){
-                    case GLFW.GLFW_PRESS -> PrismGameVariable.KEY_BUTTON[key]=1;
-                    case GLFW.GLFW_RELEASE -> PrismGameVariable.KEY_BUTTON[key]=-PrismGameVariable.KEY_BUTTON[key];
+                //System.out.println(action);
+                if(key>=0) {
+                    switch (action) {
+                        case GLFW.GLFW_PRESS -> PrismGameVariable.KEY_BUTTON[key] = 1;
+                        case GLFW.GLFW_RELEASE -> PrismGameVariable.KEY_BUTTON[key] = -PrismGameVariable.KEY_BUTTON[key];
+                    }
                 }
             }
         });
