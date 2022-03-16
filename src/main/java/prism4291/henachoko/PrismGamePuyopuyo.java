@@ -14,6 +14,8 @@ public class PrismGamePuyopuyo {
     static int key_left=GLFW.GLFW_KEY_A;
     static int key_right=GLFW.GLFW_KEY_D;
     static int key_down=GLFW.GLFW_KEY_S;
+    static int key_rotate_right=GLFW.GLFW_KEY_E;
+    static int key_rotate_left=GLFW.GLFW_KEY_Q;
     static String status;
     Puyopuyo currentPuyo;
     Puyopuyo currentPuyoSub;
@@ -113,6 +115,7 @@ public class PrismGamePuyopuyo {
                     setFrameY(40);
                 }
             }
+            
             if (cooldown==0&&PrismGameVariable.KEY_BUTTON[key_down] > 0) {
                 setFrameY(4);
 
@@ -120,6 +123,20 @@ public class PrismGamePuyopuyo {
         }
         if(PrismGameVariable.KEY_BUTTON[key_down]<=0){
             setFrameY(40);
+        }
+        if (PrismGameVariable.KEY_BUTTON[key_rotate_right]>0) {
+            if(checkCanRotateRight()) {
+                muki=(muki+1)%4;
+                setSubPuyoXY(currentPuyo, currentPuyoSub);
+                status = "check";
+            }
+        }
+        if (PrismGameVariable.KEY_BUTTON[key_rotate_left]>0) {
+            if(checkCanRotateLeft()) {
+                muki=(muki+1)%4;
+                setSubPuyoXY(currentPuyo, currentPuyoSub);
+                status = "check";
+            }
         }
 
         if(canFall){
@@ -222,6 +239,12 @@ public class PrismGamePuyopuyo {
         return currentPuyo.puyoX<puyoMaxX-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX+1,currentPuyo.puyoY))==null&&backPuyos.get(calPuyoMap(currentPuyoSub.puyoX+1,currentPuyoSub.puyoY))==null;
     }
     boolean checkCanMoveLeft(){
+        return currentPuyo.puyoX>0&&backPuyos.get(calPuyoMap(currentPuyo.puyoX-1,currentPuyo.puyoY))==null&&backPuyos.get(calPuyoMap(currentPuyoSub.puyoX-1,currentPuyoSub.puyoY))==null;
+    }
+    boolean checkCanRotateLeft(){
+        return currentPuyo.puyoX>0&&backPuyos.get(calPuyoMap(currentPuyo.puyoX-1,currentPuyo.puyoY))==null&&backPuyos.get(calPuyoMap(currentPuyoSub.puyoX-1,currentPuyoSub.puyoY))==null;
+    }
+    boolean checkCanRotateLeft(){
         return currentPuyo.puyoX>0&&backPuyos.get(calPuyoMap(currentPuyo.puyoX-1,currentPuyo.puyoY))==null&&backPuyos.get(calPuyoMap(currentPuyoSub.puyoX-1,currentPuyoSub.puyoY))==null;
     }
     int calPuyoMap(int x,int y){
