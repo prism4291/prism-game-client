@@ -27,6 +27,8 @@ public class PrismGamePuyopuyo {
     int delay;
     boolean canFall;
     int cooldown;
+    int yokocooldown;
+    int timenext;
 
     PrismGamePuyopuyo(){
         status="ready";
@@ -36,8 +38,9 @@ public class PrismGamePuyopuyo {
         theta=Math.PI*1.5;
         backPuyos=new HashMap<>();
         delay=0;
-
+        yokocooldown=0;
         canFall=false;
+        timenext=0;
     }
     void createPuyo(int color1, int color2){
         currentPuyo=new Puyopuyo(color1);
@@ -71,29 +74,40 @@ public class PrismGamePuyopuyo {
         }
     }
     void move(Puyopuyo puyo){
+
         if(cooldown>0){
             cooldown--;
         }else {
             //System.out.println(PrismGameVariable.KEY_BUTTON[key_right]);
-            if (PrismGameVariable.KEY_BUTTON[key_right]>0) {
+            if (PrismGameVariable.KEY_BUTTON[key_right]>0&&yokocooldown<=0) {
                 if(checkCanMoveRight()) {
                     currentPuyo.puyoX += 1;
                     setSubPuyoXY(currentPuyo, currentPuyoSub);
                     cooldown = 3;
-                    if(PrismGameVariable.KEY_BUTTON[key_right]<20){
-                        cooldown=8;
+                    if(PrismGameVariable.KEY_BUTTON[key_right]>0){
+                        yokocooldown=5;
+                        if(PrismGameVariable.KEY_BUTTON[key_right]<=3) {
+                            yokocooldown = 15;
+                        }else if(PrismGameVariable.KEY_BUTTON[key_right]<=15) {
+                            yokocooldown = 10;
+                        }
                     }
                     status = "check";
                     setFrameY(40);
                 }
             }
-            if (PrismGameVariable.KEY_BUTTON[key_left] >0) {
+            if (PrismGameVariable.KEY_BUTTON[key_left] >0&&yokocooldown<=0) {
                 if(checkCanMoveLeft()) {
                     currentPuyo.puyoX -= 1;
                     setSubPuyoXY(currentPuyo, currentPuyoSub);
                     cooldown = 3;
-                    if(PrismGameVariable.KEY_BUTTON[key_left]<20){
-                        cooldown=8;
+                    if(PrismGameVariable.KEY_BUTTON[key_left]>0){
+                        yokocooldown=5;
+                        if(PrismGameVariable.KEY_BUTTON[key_left]<=3) {
+                            yokocooldown = 15;
+                        }else if(PrismGameVariable.KEY_BUTTON[key_left]<=15) {
+                            yokocooldown = 10;
+                        }
                     }
                     status = "check";
                     setFrameY(40);
@@ -132,16 +146,23 @@ public class PrismGamePuyopuyo {
 
     }
     int PuyoLoop(){
+        if(yokocooldown>0){
+            yokocooldown--;
+        }
         switch (status){
             case "go":
                 status="summon";
                 break;
             case "summon":
-                createPuyo(0,0);
-                delay=0;
-                canFall=true;
-                status="move";
-                cooldown=0;
+                timenext++;
+                if(timenext>=30) {
+                    createPuyo(0, 0);
+                    delay = 0;
+                    canFall = true;
+                    status = "move";
+                    cooldown = 0;
+                    timenext = 0;
+                }
                 break;
             case "move":
                 move(currentPuyo);
