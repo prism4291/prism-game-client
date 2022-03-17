@@ -34,6 +34,7 @@ public class PrismGamePuyopuyo {
     int frameTheta;
     int frameMaxTheta;
     double puyoRotate;
+    int maxFallTime;
     PrismGamePuyopuyo(){
         status="ready";
         status="go";
@@ -48,6 +49,7 @@ public class PrismGamePuyopuyo {
         yokocooldown=0;
         canFall=false;
         timenext=0;
+        maxFallTime=-1;
     }
     void createPuyo(int color1, int color2){
         currentPuyo=new Puyopuyo(color1);
@@ -244,7 +246,27 @@ public class PrismGamePuyopuyo {
                 status="fall";
                 break;
             case "fall":
-                status="kesu";
+                if(maxFallTime<0){
+                    maxFallTime=1;
+                    for(int i=0;i<puyoMaxX;i++){
+                        int tatePuyos=0;
+                        for(int j=puyoMaxY-1;j>=0;j--){
+                            if(backPuyos.get(calPuyoMap(i,j))!=null){
+                                if(puyoMaxY-j-1-tatePuyos>0){
+                                    backPuyos.get(calPuyoMap(i,j)).puyoY=puyoMaxY-1-tatePuyos;
+                                    backPuyos.put(calPuyoMap(i,puyoMaxY-1-tatePuyos),backPuyos.get(calPuyoMap(i,j)));
+                                    backPuyos.remove(calPuyoMap(i,j));
+                                }
+                                tatePuyos+=1;
+                            }
+                        }
+                    }
+                }else if(maxFallTime==0){
+                    status="kesu";
+                    maxFallTime=-1;
+                }else{
+                    maxFallTime-=1;
+                }
                 break;
             case "kesu":
 
