@@ -35,6 +35,7 @@ public class PrismGamePuyopuyo {
     int frameMaxTheta;
     double puyoRotate;
     int maxFallTime;
+    int beforeRotate;
     PrismGamePuyopuyo(){
         status="ready";
         status="go";
@@ -50,6 +51,7 @@ public class PrismGamePuyopuyo {
         canFall=false;
         timenext=0;
         maxFallTime=-1;
+        beforeRotate=0;
     }
     void createPuyo(int color1, int color2){
         currentPuyo=new Puyopuyo(color1);
@@ -131,7 +133,7 @@ public class PrismGamePuyopuyo {
         if(PrismGameVariable.KEY_BUTTON[key_down]<=0){
             setFrameY(40);
         }
-        if (PrismGameVariable.KEY_BUTTON[key_rotate_right]>0) {
+        if (PrismGameVariable.KEY_BUTTON[key_rotate_right]==1||(beforeRotate==1&&PrismGameVariable.KEY_BUTTON[key_rotate_right]>0)) {
             if(checkCanRotateRight()) {
                 puyoRotate=Math.PI*0.5;
                 frameTheta=0;
@@ -142,7 +144,7 @@ public class PrismGamePuyopuyo {
                 status = "check";
             }
         }
-        if (PrismGameVariable.KEY_BUTTON[key_rotate_left]>0) {
+        if (PrismGameVariable.KEY_BUTTON[key_rotate_left]==1||(beforeRotate==-1&&PrismGameVariable.KEY_BUTTON[key_rotate_left]>0)) {
             if(checkCanRotateLeft()) {
                 puyoRotate=-Math.PI*0.5;
                 frameTheta=0;
@@ -153,6 +155,7 @@ public class PrismGamePuyopuyo {
                 status = "check";
             }
         }
+        beforeRotate=0;
         puyo.frameX+=1;
         if(puyo.puyoMoveX!=0&&puyo.frameX>=puyo.frameMaxX){
             puyo.puyoMoveX=0;
@@ -194,9 +197,15 @@ public class PrismGamePuyopuyo {
         switch (status){
             case "go":
                 status="summon";
+                beforeRotate=0;
                 break;
             case "summon":
                 timenext++;
+                if(PrismGameVariable.KEY_BUTTON[key_rotate_right]==1){
+                    beforeRotate=1;
+                }else if(PrismGameVariable.KEY_BUTTON[key_rotate_left]==1){
+                    beforeRotate=-1;
+                }
                 if(timenext>=30) {
                     createPuyo(0, 0);
                     delay = 0;
@@ -204,6 +213,9 @@ public class PrismGamePuyopuyo {
                     status = "move";
                     cooldown = 0;
                     timenext = 0;
+                    muki=3;
+                    theta=Math.PI*1.5;
+                    puyoRotate=0;
                 }
                 break;
             case "move":
@@ -271,6 +283,7 @@ public class PrismGamePuyopuyo {
             case "kesu":
 
                 status="summon";
+                beforeRotate=0;
                 break;
         }
         //System.out.println(status);
@@ -278,13 +291,13 @@ public class PrismGamePuyopuyo {
         return 0;
     }
     boolean checkCanFall(){
-        return currentPuyo.puyoY<puyoMaxY-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX,currentPuyo.puyoY+1))==null&&backPuyos.get(calPuyoMap(currentPuyoSub.puyoX,currentPuyoSub.puyoY+1))==null;
+        return currentPuyo.puyoY<puyoMaxY-1&&currentPuyoSub.puyoY<puyoMaxY-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX,currentPuyo.puyoY+1))==null&&backPuyos.get(calPuyoMap(currentPuyoSub.puyoX,currentPuyoSub.puyoY+1))==null;
     }
     boolean checkCanMoveRight(){
-        return currentPuyo.puyoX<puyoMaxX-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX+1,currentPuyo.puyoY))==null&&backPuyos.get(calPuyoMap(currentPuyoSub.puyoX+1,currentPuyoSub.puyoY))==null;
+        return currentPuyo.puyoX<puyoMaxX-1&&currentPuyoSub.puyoX<puyoMaxX-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX+1,currentPuyo.puyoY))==null&&backPuyos.get(calPuyoMap(currentPuyoSub.puyoX+1,currentPuyoSub.puyoY))==null;
     }
     boolean checkCanMoveLeft(){
-        return currentPuyo.puyoX>0&&backPuyos.get(calPuyoMap(currentPuyo.puyoX-1,currentPuyo.puyoY))==null&&backPuyos.get(calPuyoMap(currentPuyoSub.puyoX-1,currentPuyoSub.puyoY))==null;
+        return currentPuyo.puyoX>0&&currentPuyoSub.puyoX>0&&backPuyos.get(calPuyoMap(currentPuyo.puyoX-1,currentPuyo.puyoY))==null&&backPuyos.get(calPuyoMap(currentPuyoSub.puyoX-1,currentPuyoSub.puyoY))==null;
     }
     boolean checkCanRotateLeft(){
         if(muki==0){
@@ -327,6 +340,7 @@ public class PrismGamePuyopuyo {
         sub.frameY=0;
         sub.puyoMoveX=0;
         sub.puyoMoveY=0;
+
     }
     String getData(){
         return "";
