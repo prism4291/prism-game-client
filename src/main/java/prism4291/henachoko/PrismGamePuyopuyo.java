@@ -31,13 +31,18 @@ public class PrismGamePuyopuyo {
     int cooldown;
     int yokocooldown;
     int timenext;
-
+    int frameTheta;
+    int frameMaxTheta;
+    double puyoRotate;
     PrismGamePuyopuyo(){
         status="ready";
         status="go";
         puyos=new ArrayList<>();
         muki = 3;
         theta=Math.PI*1.5;
+        frameTheta=0;
+        frameMaxTheta=10;
+        puyoRotate=0;
         backPuyos=new HashMap<>();
         delay=0;
         yokocooldown=0;
@@ -126,19 +131,34 @@ public class PrismGamePuyopuyo {
         }
         if (PrismGameVariable.KEY_BUTTON[key_rotate_right]>0) {
             if(checkCanRotateRight()) {
+                puyoRotate=Math.PI*0.5;
+                frameTheta=0;
+                frameMaxTheta=10;
                 muki=(muki+1)%4;
+                setTheta();
                 setSubPuyoXY(currentPuyo, currentPuyoSub);
                 status = "check";
             }
         }
         if (PrismGameVariable.KEY_BUTTON[key_rotate_left]>0) {
             if(checkCanRotateLeft()) {
-                muki=(muki+1)%4;
+                puyoRotate=-Math.PI*0.5;
+                frameTheta=0;
+                frameMaxTheta=10;
+                muki=(muki+3)%4;
+                setTheta();
                 setSubPuyoXY(currentPuyo, currentPuyoSub);
                 status = "check";
             }
         }
-
+        puyo.frameX+=1;
+        if(puyo.puyoMoveX!=0&&puyo.frameX>=puyo.frameMaxX){
+            puyo.puyoMoveX=0;
+        }
+        frameTheta+=1;
+        if(puyoRotate!=0&&frameTheta>=frameMaxTheta){
+            puyoRotate=0;
+        }
         if(canFall){
             puyo.frameY+=1;
             if(puyo.frameY>=puyo.frameMaxY){
@@ -156,6 +176,9 @@ public class PrismGamePuyopuyo {
             
         }
         
+    }
+    void setTheta(){
+        theta=Math.PI*muki*0.5;
     }
     void setFrameY(int n){
         currentPuyo.frameY=currentPuyo.frameY*n/currentPuyo.frameMaxY;
@@ -309,7 +332,7 @@ public class PrismGamePuyopuyo {
         if(currentPuyo!=null) {
             drawPuyo(currentPuyo);
             if(currentPuyoSub!=null){
-                drawPuyoSub(currentPuyo,currentPuyoSub,theta);
+                drawPuyoSub(currentPuyo,currentPuyoSub,theta-puyoRotate+puyoRotate*frameTheta/frameMaxTheta);
             }
         }
 
