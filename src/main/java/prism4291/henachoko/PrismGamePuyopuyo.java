@@ -329,6 +329,9 @@ public class PrismGamePuyopuyo {
         }else if(muki==1){
             if(currentPuyo.puyoX<puyoMaxX-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX+1,currentPuyo.puyoY))==null){
                 canR=true;
+            }else if(currentPuyo.puyoX>0&&backPuyos.get(calPuyoMap(currentPuyo.puyoX-1,currentPuyo.puyoY))==null){
+                canR=true;
+                hoseiX=-1;
             }
         }else if(muki==2){
             if(currentPuyo.puyoY<puyoMaxY-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX,currentPuyo.puyoY+1))==null){
@@ -337,7 +340,16 @@ public class PrismGamePuyopuyo {
         }else if(muki==3){
             if(currentPuyo.puyoX>0&&backPuyos.get(calPuyoMap(currentPuyo.puyoX-1,currentPuyo.puyoY))==null){
                 canR=true;
+            }else if(currentPuyo.puyoX<puyoMaxX-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX+1,currentPuyo.puyoY))==null){
+                canR=true;
+                hoseiX=1;
             }
+        }
+        if(hoseiX!=0){
+            currentPuyo.puyoX+=hoseiX;
+            currentPuyo.puyoMoveX=setAdditionalMoveX(hoseiX);
+            currentPuyo.frameX=0;
+            currentPuyo.frameMaxX=5;
         }
         return canR;
 
@@ -353,13 +365,25 @@ public class PrismGamePuyopuyo {
         }else if(muki==1){
             if(currentPuyo.puyoX>0&&backPuyos.get(calPuyoMap(currentPuyo.puyoX-1,currentPuyo.puyoY))==null){
                 canR=true;
+            }else if(currentPuyo.puyoX<puyoMaxX-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX+1,currentPuyo.puyoY))==null){
+                canR=true;
+                hoseiX=1;
             }
         }else if(muki==2){
             canR=true;
         }else if(muki==3){
             if(currentPuyo.puyoX<puyoMaxX-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX+1,currentPuyo.puyoY))==null){
                 canR=true;
+            }else if(currentPuyo.puyoX>0&&backPuyos.get(calPuyoMap(currentPuyo.puyoX-1,currentPuyo.puyoY))==null){
+                canR=true;
+                hoseiX=-1;
             }
+        }
+        if(hoseiX!=0){
+            currentPuyo.puyoX+=hoseiX;
+            currentPuyo.puyoMoveX=setAdditionalMoveX(hoseiX);
+            currentPuyo.frameX=0;
+            currentPuyo.frameMaxX=5;
         }
         return canR;
     }
