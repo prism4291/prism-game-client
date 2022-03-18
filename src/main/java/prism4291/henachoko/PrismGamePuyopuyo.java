@@ -124,7 +124,7 @@ public class PrismGamePuyopuyo {
                     setFrameY(40);
                 }
             }
-            
+
             if (cooldown==0&&PrismGameVariable.KEY_BUTTON[key_down] > 0) {
                 setFrameY(4);
 
@@ -178,9 +178,9 @@ public class PrismGamePuyopuyo {
                 status="fallStart";
                 setSubPuyoXY(currentPuyo,currentPuyoSub);
             }
-            
+
         }
-        
+
     }
     void setTheta(){
         theta=Math.PI*muki*0.5;
@@ -249,6 +249,9 @@ public class PrismGamePuyopuyo {
 
                 break;
             case "fallStart":
+                currentPuyo.puyoMoveX=0;
+                currentPuyo.puyoMoveY=0;
+                puyoRotate=0;
                 puyos.add(currentPuyo);
                 puyos.add(currentPuyoSub);
                 backPuyos.put(calPuyoMap(currentPuyo.puyoX,currentPuyo.puyoY),currentPuyo);
@@ -293,36 +296,72 @@ public class PrismGamePuyopuyo {
     boolean checkCanFall(){
         return currentPuyo.puyoY<puyoMaxY-1&&currentPuyoSub.puyoY<puyoMaxY-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX,currentPuyo.puyoY+1))==null&&backPuyos.get(calPuyoMap(currentPuyoSub.puyoX,currentPuyoSub.puyoY+1))==null;
     }
+    double setAdditionalMoveX(int ax){
+         return ax+(currentPuyo.puyoMoveX-currentPuyo.puyoMoveX*currentPuyo.frameX/currentPuyo.frameMaxX);
+    }
     boolean checkCanMoveRight(){
-        return currentPuyo.puyoX<puyoMaxX-1&&currentPuyoSub.puyoX<puyoMaxX-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX+1,currentPuyo.puyoY))==null&&backPuyos.get(calPuyoMap(currentPuyoSub.puyoX+1,currentPuyoSub.puyoY))==null;
+        if(currentPuyo.puyoX<puyoMaxX-1&&currentPuyoSub.puyoX<puyoMaxX-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX+1,currentPuyo.puyoY))==null&&backPuyos.get(calPuyoMap(currentPuyoSub.puyoX+1,currentPuyoSub.puyoY))==null){
+
+            currentPuyo.puyoMoveX=setAdditionalMoveX(1);
+            currentPuyo.frameX=0;
+            currentPuyo.frameMaxX=5;
+            return true;
+        }else{
+            return false;
+        }
     }
     boolean checkCanMoveLeft(){
-        return currentPuyo.puyoX>0&&currentPuyoSub.puyoX>0&&backPuyos.get(calPuyoMap(currentPuyo.puyoX-1,currentPuyo.puyoY))==null&&backPuyos.get(calPuyoMap(currentPuyoSub.puyoX-1,currentPuyoSub.puyoY))==null;
+        if(currentPuyo.puyoX>0&&currentPuyoSub.puyoX>0&&backPuyos.get(calPuyoMap(currentPuyo.puyoX-1,currentPuyo.puyoY))==null&&backPuyos.get(calPuyoMap(currentPuyoSub.puyoX-1,currentPuyoSub.puyoY))==null){
+            currentPuyo.puyoMoveX=setAdditionalMoveX(-1);
+            currentPuyo.frameX=0;
+            currentPuyo.frameMaxX=5;
+            return true;
+        }else{
+            return false;
+        }
     }
     boolean checkCanRotateLeft(){
+        int hoseiX=0;
+        int hoseiY=0;
+        boolean canR=false;
         if(muki==0){
-            return true;
+            canR=true;
         }else if(muki==1){
-            return currentPuyo.puyoX<puyoMaxX-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX+1,currentPuyo.puyoY))==null;
+            if(currentPuyo.puyoX<puyoMaxX-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX+1,currentPuyo.puyoY))==null){
+                canR=true;
+            }
         }else if(muki==2){
-            return currentPuyo.puyoY<puyoMaxY-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX,currentPuyo.puyoY+1))==null;
+            if(currentPuyo.puyoY<puyoMaxY-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX,currentPuyo.puyoY+1))==null){
+                canR=true;
+            }
         }else if(muki==3){
-            return currentPuyo.puyoX>0&&backPuyos.get(calPuyoMap(currentPuyo.puyoX-1,currentPuyo.puyoY))==null;
+            if(currentPuyo.puyoX>0&&backPuyos.get(calPuyoMap(currentPuyo.puyoX-1,currentPuyo.puyoY))==null){
+                canR=true;
+            }
         }
-        return false;
-        
+        return canR;
+
     }
     boolean checkCanRotateRight(){
+        int hoseiX=0;
+        int hoseiY=0;
+        boolean canR=false;
         if(muki==0){
-            return currentPuyo.puyoY<puyoMaxY-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX,currentPuyo.puyoY+1))==null;
+            if(currentPuyo.puyoY<puyoMaxY-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX,currentPuyo.puyoY+1))==null){
+                canR=true;
+            }
         }else if(muki==1){
-            return currentPuyo.puyoX>0&&backPuyos.get(calPuyoMap(currentPuyo.puyoX-1,currentPuyo.puyoY))==null;
+            if(currentPuyo.puyoX>0&&backPuyos.get(calPuyoMap(currentPuyo.puyoX-1,currentPuyo.puyoY))==null){
+                canR=true;
+            }
         }else if(muki==2){
-            return true;
+            canR=true;
         }else if(muki==3){
-            return currentPuyo.puyoX<puyoMaxX-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX+1,currentPuyo.puyoY))==null;
+            if(currentPuyo.puyoX<puyoMaxX-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX+1,currentPuyo.puyoY))==null){
+                canR=true;
+            }
         }
-        return false;
+        return canR;
     }
     int calPuyoMap(int x,int y){
         return y*puyoMaxX+x;
