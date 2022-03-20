@@ -38,9 +38,12 @@ public class PrismGamePuyopuyo {
     int beforeRotate;
     boolean fastFall;
     int doubleRotate;
+    long startTime;
+    int kesuCheckY;
+    boolean kesuFlag;
+    Map<Integer,Integer> kesuMap;
     PrismGamePuyopuyo(){
         status="ready";
-        status="go";
         puyos=new ArrayList<>();
         muki = 3;
         theta=Math.PI*1.5;
@@ -56,6 +59,9 @@ public class PrismGamePuyopuyo {
         beforeRotate=0;
         fastFall=false;
         doubleRotate=0;
+        //startTime=-1;
+        startTime=System.currentTimeMillis()+3000;
+        kesuFlag=false;
     }
     void createPuyo(int color1, int color2){
         currentPuyo=new Puyopuyo(color1);
@@ -205,6 +211,11 @@ public class PrismGamePuyopuyo {
             yokocooldown--;
         }
         switch (status){
+            case "ready":
+                if(System.currentTimeMillis()>=startTime) {
+                    status="go";
+                }
+                break;
             case "go":
                 status="summon";
                 beforeRotate=0;
@@ -217,7 +228,7 @@ public class PrismGamePuyopuyo {
                     beforeRotate=-1;
                 }
                 if(timenext>=30) {
-                    createPuyo(0, 0);
+                    createPuyo(0, 1);
                     delay = 0;
                     canFall = true;
                     status = "move";
@@ -289,20 +300,105 @@ public class PrismGamePuyopuyo {
                     }
                 }else if(maxFallTime==0){
                     status="kesu";
+                    kesuCheckY=0;
                     maxFallTime=-1;
                 }else{
                     maxFallTime-=1;
                 }
                 break;
             case "kesu":
+                if(kesuCheckY==0){
+                    createKesuMap();
+                }
+                if(kesuCheckY<puyoMaxY){
+                    for(int x=0;x<puyoMaxX;x++){
+                        Puyopuyo puyopuyo=backPuyos.get(calPuyoMap(x,kesuCheckY));
+                        if(puyopuyo!=null&&kesuMap.get(calPuyoMap(x,kesuCheckY))==0){
+                            int kosuu=kesuCheck(x,kesuCheckY,puyopuyo,1,false);
+                            System.out.println(kosuu);
+                            if(kosuu>=4){
+                                kesuCheck(x,kesuCheckY,puyopuyo,1,true);
+                            }
+                        }
+                    }
+                    kesuCheckY+=1;
+                }else{
+                    kesuFlag=false;
+                    for(int x=0;x<puyoMaxX;x++){
+                        for(int y=0;y<puyoMaxY;y++){
+                            if(kesuMap.get(calPuyoMap(x,y))>=2){
+                                for(int i=0;i<puyos.size();i++){
+                                    if(puyos.get(i)==backPuyos.get(calPuyoMap(x,y))){
+                                        puyos.remove(i);
+                                        break;
+                                    }
+                                }
+                                backPuyos.remove(calPuyoMap(x,y));
+                                kesuFlag=true;
+                            }
+                        }
+                    }
+                    if(kesuFlag){
+                        status="fall";
+                    }else{
+                        status="summon";
+                        beforeRotate=0;
+                    }
 
-                status="summon";
-                beforeRotate=0;
+
+                }
+
+
                 break;
         }
         //System.out.println(status);
         draw();
         return 0;
+    }
+    int kesuCheck(int x,int y,Puyopuyo puyopuyo,int kosuu,boolean flag){
+        if(flag){
+            kesuMap.put(calPuyoMap(x,y),2);
+        }else{
+            kesuMap.put(calPuyoMap(x,y),1);
+        }
+
+        int addX=1;
+        int addY=0;
+        Puyopuyo puyo;
+        for(int n=0;n<4;n++) {
+            switch (n) {
+                case 1 -> {
+                    addX = 0;
+                    addY = 1;
+                }
+                case 2 -> {
+                    addX = -1;
+                    addY = 0;
+                }
+                case 3 -> {
+                    addX = 0;
+                    addY = -1;
+                }
+            }
+
+            puyo = backPuyos.get(calPuyoMap(x + addX, y + addY));
+            if (puyo != null) {
+                if (puyopuyo.puyoColor == puyo.puyoColor&&(kesuMap.get(calPuyoMap(x + addX, y + addY))==0||(flag&&kesuMap.get(calPuyoMap(x + addX, y + addY))==1))) {
+                    kosuu += 1;
+                    kosuu = kesuCheck(x + addX, y + addY, puyopuyo, kosuu, flag);
+                }
+            }
+        }
+        return kosuu;
+    }
+
+    void createKesuMap(){
+        kesuMap=new HashMap<>();
+        for(int i=0;i<puyoMaxX;i++){
+            for(int j=0;j<puyoMaxY;j++){
+                kesuMap.put(calPuyoMap(i,j),0);
+            }
+        }
     }
     boolean checkCanFall(){
         return currentPuyo.puyoY<puyoMaxY-1&&currentPuyoSub.puyoY<puyoMaxY-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX,currentPuyo.puyoY+1))==null&&backPuyos.get(calPuyoMap(currentPuyoSub.puyoX,currentPuyoSub.puyoY+1))==null;
@@ -500,20 +596,30 @@ public class PrismGamePuyopuyo {
         glVertex2d(calWinX(6,0),calWinY(2));
         glEnd();
         //current puyo
+
+
+        for(Puyopuyo puyo:puyos){
+            drawPuyo(puyo);
+        }
         if(currentPuyo!=null) {
             drawPuyo(currentPuyo);
             if(currentPuyoSub!=null){
                 drawPuyoSub(currentPuyo,currentPuyoSub,theta-puyoRotate+puyoRotate*frameTheta/frameMaxTheta);
             }
         }
+    }
+    void changePuyoColor(int c){
+        switch (c) {
+            case 0 -> glColor4d(1, 0, 0, 1);
+            case 1 -> glColor4d(0, 1, 0, 1);
+            case 2 -> glColor4d(0, 0, 1, 1);
+            case 3 -> glColor4d(1, 1, 0, 1);
 
-        for(Puyopuyo puyo:puyos){
-            drawPuyo(puyo);
         }
     }
     void drawPuyo(Puyopuyo puyo){
         glBegin(GL_QUADS);
-        glColor4d(1, 0, 0, 1);
+        changePuyoColor(puyo.puyoColor);
         glVertex2d(calWinX(puyo.puyoX- puyo.puyoMoveX+ puyo.puyoMoveX* puyo.frameX/ puyo.frameMaxX, 0), calWinY(puyo.puyoY- puyo.puyoMoveY+ puyo.puyoMoveY* puyo.frameY/ puyo.frameMaxY));
         glVertex2d(calWinX(puyo.puyoX- puyo.puyoMoveX+ puyo.puyoMoveX* puyo.frameX/ puyo.frameMaxX , 0), calWinY(puyo.puyoY- puyo.puyoMoveY+ puyo.puyoMoveY* puyo.frameY/ puyo.frameMaxY+1));
         glVertex2d(calWinX(puyo.puyoX- puyo.puyoMoveX+ puyo.puyoMoveX* puyo.frameX/ puyo.frameMaxX+ 1, 0), calWinY(puyo.puyoY- puyo.puyoMoveY+ puyo.puyoMoveY* puyo.frameY/ puyo.frameMaxY+1));
@@ -531,7 +637,7 @@ public class PrismGamePuyopuyo {
     }
     void drawPuyoSub(Puyopuyo puyo,Puyopuyo sub,double t){
         glBegin(GL_QUADS);
-        glColor4d(1, 0, 0, 1);
+        changePuyoColor(sub.puyoColor);
         glVertex2d(calWinX(puyo.puyoX- puyo.puyoMoveX+ puyo.puyoMoveX* puyo.frameX/ puyo.frameMaxX+Math.cos(t), 0), calWinY(puyo.puyoY- puyo.puyoMoveY+ puyo.puyoMoveY* puyo.frameY/ puyo.frameMaxY+Math.sin(t)));
         glVertex2d(calWinX(puyo.puyoX- puyo.puyoMoveX+ puyo.puyoMoveX* puyo.frameX/ puyo.frameMaxX +Math.cos(t), 0), calWinY(puyo.puyoY- puyo.puyoMoveY+ puyo.puyoMoveY* puyo.frameY/ puyo.frameMaxY+1+Math.sin(t)));
         glVertex2d(calWinX(puyo.puyoX- puyo.puyoMoveX+ puyo.puyoMoveX* puyo.frameX/ puyo.frameMaxX+ 1+Math.cos(t), 0), calWinY(puyo.puyoY- puyo.puyoMoveY+ puyo.puyoMoveY* puyo.frameY/ puyo.frameMaxY+1+Math.sin(t)));
