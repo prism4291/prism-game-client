@@ -36,6 +36,8 @@ public class PrismGamePuyopuyo {
     double puyoRotate;
     int maxFallTime;
     int beforeRotate;
+    boolean fastFall;
+    int doubleRotate;
     PrismGamePuyopuyo(){
         status="ready";
         status="go";
@@ -52,6 +54,8 @@ public class PrismGamePuyopuyo {
         timenext=0;
         maxFallTime=-1;
         beforeRotate=0;
+        fastFall=false;
+        doubleRotate=0;
     }
     void createPuyo(int color1, int color2){
         currentPuyo=new Puyopuyo(color1);
@@ -85,7 +89,28 @@ public class PrismGamePuyopuyo {
         }
     }
     void move(Puyopuyo puyo){
-
+        if (PrismGameVariable.KEY_BUTTON[key_rotate_right]==1||(beforeRotate==1&&PrismGameVariable.KEY_BUTTON[key_rotate_right]>0)) {
+            if(checkCanRotateRight()) {
+                puyoRotate+=Math.PI*0.5;
+                frameTheta=0;
+                frameMaxTheta=10;
+                muki=(muki+1)%4;
+                setTheta();
+                setSubPuyoXY(currentPuyo, currentPuyoSub);
+                status = "check";
+            }
+        }
+        if (PrismGameVariable.KEY_BUTTON[key_rotate_left]==1||(beforeRotate==-1&&PrismGameVariable.KEY_BUTTON[key_rotate_left]>0)) {
+            if(checkCanRotateLeft()) {
+                puyoRotate-=Math.PI*0.5;
+                frameTheta=0;
+                frameMaxTheta=10;
+                muki=(muki+3)%4;
+                setTheta();
+                setSubPuyoXY(currentPuyo, currentPuyoSub);
+                status = "check";
+            }
+        }
         if(cooldown>0){
             cooldown--;
         }else {
@@ -104,7 +129,7 @@ public class PrismGamePuyopuyo {
                         }
                     }
                     status = "check";
-                    setFrameY(40);
+                    //setFrameY(40);
                 }
             }
             if (PrismGameVariable.KEY_BUTTON[key_left] >0&&yokocooldown<=0) {
@@ -121,40 +146,19 @@ public class PrismGamePuyopuyo {
                         }
                     }
                     status = "check";
-                    setFrameY(40);
+                    //setFrameY(40);
                 }
             }
 
             if (cooldown==0&&PrismGameVariable.KEY_BUTTON[key_down] > 0) {
-                setFrameY(4);
+                fastFall=true;
 
             }
         }
         if(PrismGameVariable.KEY_BUTTON[key_down]<=0){
-            setFrameY(40);
+            fastFall=false;
         }
-        if (PrismGameVariable.KEY_BUTTON[key_rotate_right]==1||(beforeRotate==1&&PrismGameVariable.KEY_BUTTON[key_rotate_right]>0)) {
-            if(checkCanRotateRight()) {
-                puyoRotate=Math.PI*0.5;
-                frameTheta=0;
-                frameMaxTheta=10;
-                muki=(muki+1)%4;
-                setTheta();
-                setSubPuyoXY(currentPuyo, currentPuyoSub);
-                status = "check";
-            }
-        }
-        if (PrismGameVariable.KEY_BUTTON[key_rotate_left]==1||(beforeRotate==-1&&PrismGameVariable.KEY_BUTTON[key_rotate_left]>0)) {
-            if(checkCanRotateLeft()) {
-                puyoRotate=-Math.PI*0.5;
-                frameTheta=0;
-                frameMaxTheta=10;
-                muki=(muki+3)%4;
-                setTheta();
-                setSubPuyoXY(currentPuyo, currentPuyoSub);
-                status = "check";
-            }
-        }
+
         beforeRotate=0;
         puyo.frameX+=1;
         if(puyo.puyoMoveX!=0&&puyo.frameX>=puyo.frameMaxX){
@@ -164,15 +168,21 @@ public class PrismGamePuyopuyo {
         if(puyoRotate!=0&&frameTheta>=frameMaxTheta){
             puyoRotate=0;
         }
-        if(canFall){
-            puyo.frameY+=1;
-            if(puyo.frameY>=puyo.frameMaxY){
-                status="check";
-            }
+        puyo.frameY+=1;
+        if(fastFall&&cooldown==0){
+            puyo.frameY+=9;
+        }
+        if(puyo.puyoMoveY!=0&&puyo.frameY>=puyo.frameMaxY){
+            puyo.puyoMoveY=0;
+            status="check";
+        }
+        //System.out.println(delay);
+        if(puyo.puyoMoveY!=0){
+            delay=0;
         }else{
             delay+=1;
-            if(PrismGameVariable.KEY_BUTTON[key_down]>0){
-                delay=delayMax;
+            if(fastFall){
+                delay+=25;
             }
             if(delay>=delayMax){
                 status="fallStart";
@@ -185,11 +195,11 @@ public class PrismGamePuyopuyo {
     void setTheta(){
         theta=Math.PI*muki*0.5;
     }
-    void setFrameY(int n){
-        currentPuyo.frameY=currentPuyo.frameY*n/currentPuyo.frameMaxY;
-        currentPuyo.frameMaxY=n;
-
-    }
+//    void setFrameY(int n){
+//        currentPuyo.frameY=currentPuyo.frameY*n/currentPuyo.frameMaxY;
+//        currentPuyo.frameMaxY=n;
+//
+//    }
     int PuyoLoop(){
         if(yokocooldown>0){
             yokocooldown--;
@@ -216,6 +226,7 @@ public class PrismGamePuyopuyo {
                     muki=3;
                     theta=Math.PI*1.5;
                     puyoRotate=0;
+                    doubleRotate=0;
                 }
                 break;
             case "move":
@@ -226,15 +237,15 @@ public class PrismGamePuyopuyo {
                 //System.out.println("check "+currentPuyo.frameY);
                 setSubPuyoXY(currentPuyo, currentPuyoSub);
 
-                if(currentPuyo.frameY>=currentPuyo.frameMaxY|| !canFall) {
-                    currentPuyo.frameY = 0;
+                if(currentPuyo.puyoMoveY==0) {
 
 
                     if (checkCanFall()) {
                         canFall=true;
-                        //currentPuyo.frameMaxY = 40;
+                        currentPuyo.frameY=0;
+                        currentPuyo.frameMaxY = 40;
                         currentPuyo.puyoY += 1;
-                        currentPuyo.puyoMoveY = 1;
+                        currentPuyo.puyoMoveY = setAdditionalMoveY(1);
 
                         setSubPuyoXY(currentPuyo, currentPuyoSub);
                         status = "move";
@@ -242,7 +253,7 @@ public class PrismGamePuyopuyo {
                     } else {
                         canFall = false;
                         status = "move";
-                        currentPuyo.puyoMoveY = 0;
+                        //currentPuyo.puyoMoveY = 0;
                     }
                 }
                 move(currentPuyo);
@@ -297,7 +308,11 @@ public class PrismGamePuyopuyo {
         return currentPuyo.puyoY<puyoMaxY-1&&currentPuyoSub.puyoY<puyoMaxY-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX,currentPuyo.puyoY+1))==null&&backPuyos.get(calPuyoMap(currentPuyoSub.puyoX,currentPuyoSub.puyoY+1))==null;
     }
     double setAdditionalMoveX(int ax){
+        delay=0;
          return ax+(currentPuyo.puyoMoveX-currentPuyo.puyoMoveX*currentPuyo.frameX/currentPuyo.frameMaxX);
+    }
+    double setAdditionalMoveY(int ay){
+        return ay+(currentPuyo.puyoMoveY-currentPuyo.puyoMoveY*currentPuyo.frameY/currentPuyo.frameMaxY);
     }
     boolean checkCanMoveRight(){
         if(currentPuyo.puyoX<puyoMaxX-1&&currentPuyoSub.puyoX<puyoMaxX-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX+1,currentPuyo.puyoY))==null&&backPuyos.get(calPuyoMap(currentPuyoSub.puyoX+1,currentPuyoSub.puyoY))==null){
@@ -332,10 +347,21 @@ public class PrismGamePuyopuyo {
             }else if(currentPuyo.puyoX>0&&backPuyos.get(calPuyoMap(currentPuyo.puyoX-1,currentPuyo.puyoY))==null){
                 canR=true;
                 hoseiX=-1;
+            }else{
+                doubleRotate+=1;
+                if(doubleRotate>=2) {
+                    doubleRotate=0;
+                    canR = true;
+                    muki += 3;
+                    puyoRotate -= Math.PI * 0.5;
+                }
             }
         }else if(muki==2){
             if(currentPuyo.puyoY<puyoMaxY-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX,currentPuyo.puyoY+1))==null){
                 canR=true;
+            }else{
+                canR=true;
+                hoseiY=-1;
             }
         }else if(muki==3){
             if(currentPuyo.puyoX>0&&backPuyos.get(calPuyoMap(currentPuyo.puyoX-1,currentPuyo.puyoY))==null){
@@ -343,6 +369,18 @@ public class PrismGamePuyopuyo {
             }else if(currentPuyo.puyoX<puyoMaxX-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX+1,currentPuyo.puyoY))==null){
                 canR=true;
                 hoseiX=1;
+            }else{
+                doubleRotate+=1;
+                if(doubleRotate>=2) {
+                    doubleRotate=0;
+
+                    canR = true;
+                    muki += 3;
+                    puyoRotate -= Math.PI * 0.5;
+                    if(!(currentPuyo.puyoY<puyoMaxY-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX,currentPuyo.puyoY+1))==null)){
+                        hoseiY=-1;
+                    }
+                }
             }
         }
         if(hoseiX!=0){
@@ -350,6 +388,12 @@ public class PrismGamePuyopuyo {
             currentPuyo.puyoMoveX=setAdditionalMoveX(hoseiX);
             currentPuyo.frameX=0;
             currentPuyo.frameMaxX=5;
+        }
+        if(hoseiY!=0){
+            currentPuyo.puyoY+=hoseiY;
+            currentPuyo.puyoMoveY=setAdditionalMoveY(hoseiY);
+            currentPuyo.frameY=0;
+            currentPuyo.frameMaxY=5;
         }
         return canR;
 
@@ -361,6 +405,9 @@ public class PrismGamePuyopuyo {
         if(muki==0){
             if(currentPuyo.puyoY<puyoMaxY-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX,currentPuyo.puyoY+1))==null){
                 canR=true;
+            }else{
+                canR=true;
+                hoseiY=-1;
             }
         }else if(muki==1){
             if(currentPuyo.puyoX>0&&backPuyos.get(calPuyoMap(currentPuyo.puyoX-1,currentPuyo.puyoY))==null){
@@ -368,6 +415,14 @@ public class PrismGamePuyopuyo {
             }else if(currentPuyo.puyoX<puyoMaxX-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX+1,currentPuyo.puyoY))==null){
                 canR=true;
                 hoseiX=1;
+            }else{
+                doubleRotate+=1;
+                if(doubleRotate>=2){
+                    doubleRotate=0;
+                    canR=true;
+                    muki+=1;
+                    puyoRotate+=Math.PI*0.5;
+                }
             }
         }else if(muki==2){
             canR=true;
@@ -377,6 +432,17 @@ public class PrismGamePuyopuyo {
             }else if(currentPuyo.puyoX>0&&backPuyos.get(calPuyoMap(currentPuyo.puyoX-1,currentPuyo.puyoY))==null){
                 canR=true;
                 hoseiX=-1;
+            }else{
+                doubleRotate+=1;
+                if(doubleRotate>=2){
+                    doubleRotate=0;
+                    canR=true;
+                    muki+=1;
+                    puyoRotate+=Math.PI*0.5;
+                    if(!(currentPuyo.puyoY<puyoMaxY-1&&backPuyos.get(calPuyoMap(currentPuyo.puyoX,currentPuyo.puyoY+1))==null)){
+                        hoseiY=-1;
+                    }
+                }
             }
         }
         if(hoseiX!=0){
@@ -384,6 +450,12 @@ public class PrismGamePuyopuyo {
             currentPuyo.puyoMoveX=setAdditionalMoveX(hoseiX);
             currentPuyo.frameX=0;
             currentPuyo.frameMaxX=5;
+        }
+        if(hoseiY!=0){
+            currentPuyo.puyoY+=hoseiY;
+            currentPuyo.puyoMoveY=setAdditionalMoveY(hoseiY);
+            currentPuyo.frameY=0;
+            currentPuyo.frameMaxY=5;
         }
         return canR;
     }
