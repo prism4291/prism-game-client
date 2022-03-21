@@ -27,5 +27,5 @@ public class PrismGameVariable {
     public static Socket socket;
     public static String socketId;
     public static Map<String, Texture> images=new HashMap<>();
-
+    public static boolean isHost=true;
 }

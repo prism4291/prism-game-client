@@ -35,7 +35,7 @@ public class PrismGameMain {
     PrismGameMain() {
         fuse = 0;
         //
-        seq = 5;
+        seq = 0;
         //
         images.put("title", Texture.loadTexture("/title.png"));
         images.put("host", Texture.loadTexture("/host.png"));
@@ -142,7 +142,7 @@ public class PrismGameMain {
             }
             if (gameStarting) {
                 seq = 5;
-
+                isHost=true;
             }
         } else if (seq == 3) {
             int res = showGuest();
@@ -161,6 +161,7 @@ public class PrismGameMain {
             int res=showJoinedRoom();
             if (gameStarting) {
                 seq = 5;
+                isHost=false;
 
             }
         } else if (seq == 5) {
@@ -179,6 +180,7 @@ public class PrismGameMain {
         int res=prismGamePuyopuyo.PuyoLoop();
         JSONObject msg=new JSONObject();
         msg.put("from",socketId);
+        msg.put("type","loop");
         msg.put("data",prismGamePuyopuyo.getData());
         PrismGameVariable.socket.emit("clientRoomMessage",msg );
         return 0;

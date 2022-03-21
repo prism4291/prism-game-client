@@ -2,11 +2,9 @@ package prism4291.henachoko;
 
 import org.json.JSONObject;
 import org.lwjgl.glfw.GLFW;
+import org.lwjgl.system.CallbackI;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -42,8 +40,11 @@ public class PrismGamePuyopuyo {
     int kesuCheckY;
     boolean kesuFlag;
     Map<Integer,Integer> kesuMap;
+    String tumoData;
+    Random random;
+    int tumoIndex;
     PrismGamePuyopuyo(){
-        status="ready";
+        status="init";
         puyos=new ArrayList<>();
         muki = 3;
         theta=Math.PI*1.5;
@@ -59,11 +60,15 @@ public class PrismGamePuyopuyo {
         beforeRotate=0;
         fastFall=false;
         doubleRotate=0;
-        //startTime=-1;
-        startTime=System.currentTimeMillis()+3000;
+        startTime=-1;
+
         kesuFlag=false;
+        tumoData="";
+        random=new Random();
+        tumoIndex=0;
     }
     void createPuyo(int color1, int color2){
+
         currentPuyo=new Puyopuyo(color1);
         currentPuyoSub=new Puyopuyo(color2);
 
@@ -93,6 +98,9 @@ public class PrismGamePuyopuyo {
             puyoX = 2;
             puyoY = 2;
         }
+        //JSONObject toJson(){
+
+        //}
     }
     void move(Puyopuyo puyo){
         if (PrismGameVariable.KEY_BUTTON[key_rotate_right]==1||(beforeRotate==1&&PrismGameVariable.KEY_BUTTON[key_rotate_right]>0)) {
@@ -211,6 +219,24 @@ public class PrismGamePuyopuyo {
             yokocooldown--;
         }
         switch (status){
+            case "init":
+                if(PrismGameVariable.isHost) {
+                    for (int i = 0; i < 256; i++) {
+                        tumoData += random.nextInt(4);
+                    }
+                    startTime = System.currentTimeMillis() + 5000;
+                    JSONObject msg = new JSONObject();
+                    msg.put("from",PrismGameVariable.socketId);
+                    msg.put("type","init");
+                    msg.put("startTime",startTime);
+                    msg.put("tumoData",tumoData);
+                    PrismGameVariable.socket.emit("clientRoomMessage",msg );
+                    status = "ready";
+                    tumoIndex=0;
+                }else if(startTime>=0){
+                    status="ready";
+                }
+                break;
             case "ready":
                 if(System.currentTimeMillis()>=startTime) {
                     status="go";
@@ -228,7 +254,12 @@ public class PrismGamePuyopuyo {
                     beforeRotate=-1;
                 }
                 if(timenext>=30) {
-                    createPuyo(0, 1);
+
+                    createPuyo(Integer.parseInt(tumoData.substring(tumoIndex,tumoIndex+1)),Integer.parseInt(tumoData.substring(tumoIndex+1,tumoIndex+2)));
+                    tumoIndex+=2;
+                    if(tumoIndex>=tumoData.length()){
+                        tumoIndex=0;
+                    }
                     delay = 0;
                     canFall = true;
                     status = "move";
@@ -573,11 +604,18 @@ public class PrismGamePuyopuyo {
         sub.puyoMoveY=0;
 
     }
-    String getData(){
-        return "";
+    JSONObject getData(){
+        JSONObject jo=new JSONObject();
+        jo.put("puyo",puyos);
+        return jo;
     }
-    void updateData(JSONObject obj){
-
+    void updateData(JSONObject jo){
+        if(jo.getString("type").equals("init")){
+            startTime=jo.getLong("startTime");
+            tumoData= jo.getString("tumoData");
+        }else if(jo.getString("type").equals("loop")){
+            List<Puyopuyo> puyoList= (List<Puyopuyo>) jo.get("puyo");
+        }
     }
     void draw(){
         glBegin(GL_TRIANGLE_FAN);
