@@ -606,15 +606,22 @@ public class PrismGamePuyopuyo {
     }
     JSONObject getData(){
         JSONObject jo=new JSONObject();
-        jo.put("puyo",puyos);
+        //jo.put("puyo",puyos);
         return jo;
+    }
+    void PuyoSend(){
+        JSONObject msg=new JSONObject();
+        msg.put("from",socketId);
+        msg.put("type","loop");
+        msg.put("data",getData());
+        PrismGameVariable.socket.emit("clientRoomMessage",msg );
     }
     void updateData(JSONObject jo){
         if(jo.getString("type").equals("init")){
             startTime=jo.getLong("startTime");
             tumoData= jo.getString("tumoData");
         }else if(jo.getString("type").equals("loop")){
-            List<Puyopuyo> puyoList= (List<Puyopuyo>) jo.get("puyo");
+            
         }
     }
     void draw(){
