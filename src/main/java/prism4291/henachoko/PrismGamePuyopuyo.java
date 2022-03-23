@@ -43,6 +43,13 @@ public class PrismGamePuyopuyo {
     String tumoData;
     Random random;
     int tumoIndex;
+    int rensaSuu;
+    int kosuuBonus;
+    int colorBonus;
+    int rensaBonus;
+    int kosuuCount;
+    int totalBonus;
+    Set<Integer> kesuColors;
     PrismGamePuyopuyo(){
         status="init";
         puyos=new ArrayList<>();
@@ -66,6 +73,13 @@ public class PrismGamePuyopuyo {
         tumoData="";
         random=new Random();
         tumoIndex=0;
+        rensaSuu=0;
+        kosuuBonus=0;
+        colorBonus=0;
+        rensaBonus=0;
+        kosuuCount=0;
+        kesuColors = new HashSet<>();
+        totalBonus=0;
     }
     void createPuyo(int color1, int color2){
 
@@ -312,6 +326,7 @@ public class PrismGamePuyopuyo {
                 currentPuyo=null;
                 currentPuyoSub=null;
                 status="fall";
+                rensaSuu=0;
                 break;
             case "fall":
                 if(maxFallTime<0){
@@ -340,6 +355,11 @@ public class PrismGamePuyopuyo {
             case "kesu":
                 if(kesuCheckY==0){
                     createKesuMap();
+                    kosuuBonus=0;
+                    colorBonus=0;
+                    rensaBonus=0;
+                    kosuuCount=0;
+                    kesuColors.clear();
                 }
                 if(kesuCheckY<puyoMaxY){
                     for(int x=0;x<puyoMaxX;x++){
@@ -349,6 +369,13 @@ public class PrismGamePuyopuyo {
                             System.out.println(kosuu);
                             if(kosuu>=4){
                                 kesuCheck(x,kesuCheckY,puyopuyo,1,true);
+                                kosuuCount+=kosuu;
+                                if(kosuu>=11){
+                                    kosuuBonus+=10;
+                                }else if(kosuu>=5){
+                                    kosuuBonus+=kosuu-3;
+                                }
+                                kesuColors.add(puyopuyo.puyoColor);
                             }
                         }
                     }
@@ -370,6 +397,25 @@ public class PrismGamePuyopuyo {
                         }
                     }
                     if(kesuFlag){
+                        rensaSuu+=1;
+                        for(int i=2;i<rensaSuu;i++){
+                            if(i<=3){
+                                rensaBonus+=8;
+                            }else if(i==4){
+                                rensaBonus+=16;
+                            }else{
+                                rensaBonus+=32;
+                            }
+                        }
+                        for(int i=1;i<kesuColors.size();i++){
+                            if(colorBonus==0){
+                                colorBonus=3;
+                            }else{
+                                colorBonus*=2;
+                            }
+                        }
+                        totalBonus=kosuuCount*10*Math.max(1,rensaBonus+kosuuBonus+colorBonus);
+                        System.out.println(totalBonus);
                         status="fall";
                     }else{
                         status="summon";
