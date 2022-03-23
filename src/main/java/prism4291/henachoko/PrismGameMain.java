@@ -99,10 +99,11 @@ public class PrismGameMain {
         });
         PrismGameVariable.socket.on("serverRoomMessage", objects -> {
             JSONObject jo = (JSONObject) objects[0];
-            if(!jo.getString("from").equals(socketId)) {
-                System.out.println(jo.getString("from"));
-                prismGamePuyopuyo.updateData(jo);
-            }
+            //if(!jo.getString("from").equals(socketId)) {
+            //    System.out.println(jo.getString("from"));
+                //prismGamePuyopuyo.updateData(jo);
+            //}
+            PrismGameVariable.PLAYERDATA.put(jo);
         });
     }
 
@@ -178,11 +179,7 @@ public class PrismGameMain {
     int MainGame() {
 
         int res=prismGamePuyopuyo.PuyoLoop();
-        JSONObject msg=new JSONObject();
-        msg.put("from",socketId);
-        msg.put("type","loop");
-        msg.put("data",prismGamePuyopuyo.getData());
-        PrismGameVariable.socket.emit("clientRoomMessage",msg );
+        prismGamePuyopuyo.PuyoSend();
         return 0;
     }
 
