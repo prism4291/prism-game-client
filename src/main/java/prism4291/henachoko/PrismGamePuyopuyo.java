@@ -281,7 +281,7 @@ public class PrismGamePuyopuyo {
         if(myOjama!=null) {
             for (String str : myOjama.keySet()) {
                 if (str.equals(PrismGameVariable.userName)) {
-                    //continue;
+                    continue;
                 }
                 for (int i = 0; i < myOjama.get(str).size();i++){
                     if(ojamaStarting.get(str).get(i)) {
@@ -297,7 +297,7 @@ public class PrismGamePuyopuyo {
         if(myOjama!=null) {
             for (String str : myOjama.keySet()) {
                 if (str.equals(PrismGameVariable.userName)) {
-                    //continue;
+                    continue;
                 }
                 for (int i = 0; i < myOjama.get(str).size();i++){
                     if(ojamaStarting.get(str).get(i)) {
@@ -929,7 +929,7 @@ public class PrismGamePuyopuyo {
         int n=1;
         for(String opponent:opponentPuyos.keySet()){
             if(opponent.equals(PrismGameVariable.userName)){
-                //continue;
+                continue;
             }
             for(Puyopuyo puyopuyo:opponentPuyos.get(opponent)){
                 drawPuyo(puyopuyo,n);
