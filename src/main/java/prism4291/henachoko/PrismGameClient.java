@@ -69,6 +69,7 @@ public class PrismGameClient {
                 if(isStringBad(data.getString(keyName))){
                     return null;
                 }
+                PrismGameVariable.userName=data.getString(keyName);
                 if(isStringBad(data.getString(keyPassWord))){
                     return null;
                 }

@@ -3,6 +3,8 @@ package prism4291.henachoko;
 import io.socket.client.Socket;
 
 import org.json.JSONArray;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,4 +32,5 @@ public class PrismGameVariable {
     public static Map<String, Texture> images=new HashMap<>();
     public static boolean isHost=true;
     public static JSONArray PLAYERDATA=new JSONArray();
+    public static String userName;
 }

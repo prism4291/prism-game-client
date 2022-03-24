@@ -137,7 +137,7 @@ public class PrismGameMain {
             }
         } else if (seq == 2) {
             int res = showHost();
-            if(res==1){
+            if(res==1|| KEY_BUTTON[GLFW.GLFW_KEY_A]==1){
 
                 PrismGameVariable.socket.emit("clientStartGame",currentRoom.toString());
             }
@@ -169,6 +169,10 @@ public class PrismGameMain {
             if(prismGamePuyopuyo==null){
                 prismGamePuyopuyo=new PrismGamePuyopuyo();
             }
+//            int n=0;
+//            for(Object str:currentRoom.getJSONArray("guest")){
+//                prismGamePuyopuyo.opponents.put(n,(String) str);
+//            }
             int res = MainGame();
 
         }
@@ -179,7 +183,33 @@ public class PrismGameMain {
     int MainGame() {
 
         int res=prismGamePuyopuyo.PuyoLoop();
-        prismGamePuyopuyo.PuyoSend();
+        if(fuse%4==0) {
+            prismGamePuyopuyo.PuyoSend();
+        }
+        //System.out.println(PLAYERDATA);
+        JSONArray tmpDATA=new JSONArray(PLAYERDATA.toString());
+        PLAYERDATA.clear();
+        long[] times= new long[tmpDATA.length()];
+        for(int n=0;n<tmpDATA.length();n++){
+            times[n]=tmpDATA.getJSONObject(n).getLong("time");
+        }
+        for(int m=0;m<tmpDATA.length();m++){
+            for(int n=0;n<tmpDATA.length()-1;n++){
+                if(times[n]>times[n+1]){
+                    long t=times[n];
+                    times[n]=times[n+1];
+                    times[n+1]=t;
+                    JSONObject jo=tmpDATA.getJSONObject(n);
+                    tmpDATA.put(n,tmpDATA.getJSONObject(n+1));
+                    tmpDATA.put(n+1,jo);
+                }
+            }
+        }
+        for(int n=0;n<tmpDATA.length();n++){
+            JSONObject jo=tmpDATA.getJSONObject(n);
+            prismGamePuyopuyo.updateData(jo);
+        }
+
         return 0;
     }
 
@@ -417,7 +447,7 @@ public class PrismGameMain {
                 menuSelect++;
             }
             if (menuSelect < 0) {
-                menuSelect = roomList.length();
+                menuSelect = roomList.length()-1;
             }
             if (menuSelect >= roomList.length()) {
                 menuSelect = 0;
