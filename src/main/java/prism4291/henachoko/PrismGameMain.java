@@ -55,7 +55,7 @@ public class PrismGameMain {
         playSequence=0;
         PrismGameVariable.socket.on("serverStartGame", objects -> {
             JSONObject jo = (JSONObject) objects[0];
-            System.out.println(jo);
+            System.out.println("serverStartGame  "+jo);
             if (jo.getString("status").equals("start")) {
                 gameStarting = true;
             }
@@ -63,7 +63,7 @@ public class PrismGameMain {
         currentRoom=null;
         PrismGameVariable.socket.on("serverJoinMember", objects -> {
             JSONObject jo = (JSONObject) objects[0];
-            System.out.println(jo);
+            //System.out.println(jo);
             currentRoom=jo.getJSONObject("room");
             memberUpdated=true;
         });
@@ -74,7 +74,7 @@ public class PrismGameMain {
         memberUpdated=false;
         PrismGameVariable.socket.on("serverCreateRoomRes", objects -> {
             JSONObject jo = (JSONObject) objects[0];
-            System.out.println(jo);
+            //System.out.println(jo);
             myRoomName = jo.getString("name");
             roomJoined = true;
             currentRoom=jo.getJSONObject("room");
@@ -82,13 +82,13 @@ public class PrismGameMain {
         });
         PrismGameVariable.socket.on("serverGetRoomRes", objects -> {
             JSONObject jo = (JSONObject) objects[0];
-            System.out.println(jo);
+            //System.out.println(jo);
             roomList = jo.getJSONArray("rooms");
 
         });
         PrismGameVariable.socket.on("serverJoinRoomRes", objects -> {
             JSONObject jo = (JSONObject) objects[0];
-            System.out.println(jo);
+            //System.out.println(jo);
             if (jo.getString("status").equals("success")) {
                 roomJoined = true;
                 myRoomName = jo.getJSONObject("room").getString("name");
@@ -107,7 +107,7 @@ public class PrismGameMain {
         });
     }
 
-    void Main() {
+    void Main(boolean flag) {
 
         fuse++;
         if (socketId == null) {
@@ -173,16 +173,19 @@ public class PrismGameMain {
 //            for(Object str:currentRoom.getJSONArray("guest")){
 //                prismGamePuyopuyo.opponents.put(n,(String) str);
 //            }
-            int res = MainGame();
+            int res = MainGame(flag);
 
         }
         //System.out.println(seq);
         myActionMain();
     }
 
-    int MainGame() {
+    int MainGame(boolean flag) {
 
         int res=prismGamePuyopuyo.PuyoLoop();
+        if(flag) {
+            prismGamePuyopuyo.draw();
+        }
         if(fuse%4==0) {
             prismGamePuyopuyo.PuyoSend();
         }
@@ -222,7 +225,7 @@ public class PrismGameMain {
         roomMemberImage=new ArrayList<>();
         roomMemberImage.add(Texture.drawStrImage(currentRoom.getString("host")).getId());
         for(Object str:currentRoom.getJSONArray("guest")){
-            System.out.println(str);
+            //System.out.println(str);
             roomMemberImage.add(Texture.drawStrImage((String) str).getId());
         }
         memberUpdated=false;

@@ -368,12 +368,14 @@ public class PrismGamePuyopuyo {
                     status = "ready";
                     tumoIndex=0;
                 }else if(startTime>=0){
+                    System.out.println("guest ready");
                     status="ready";
                 }
                 break;
             case "ready":
                 if(System.currentTimeMillis()>=startTime) {
                     status="go";
+                    System.out.println("go");
                 }
                 break;
             case "go":
@@ -547,7 +549,7 @@ public class PrismGamePuyopuyo {
                             }
                         }
                         totalBonus=kosuuCount*10*Math.max(1,rensaBonus+kosuuBonus+colorBonus);
-                        System.out.println("kosuu  "+kosuuCount+"  rensa  "+rensaBonus+"  kosuu  "+kosuuBonus+"  color  "+colorBonus);
+                        //println("kosuu  "+kosuuCount+"  rensa  "+rensaBonus+"  kosuu  "+kosuuBonus+"  color  "+colorBonus);
                         sendOjama(totalBonus,rensaSuu,false);
                         status="fall";
                     }else{
@@ -577,7 +579,7 @@ public class PrismGamePuyopuyo {
                 break;
         }
         //System.out.println(status);
-        draw();
+        //draw();
         return 0;
     }
     void sendOjama(int n,int r,boolean end){
@@ -830,14 +832,18 @@ public class PrismGamePuyopuyo {
         return jo;
     }
     void PuyoSend(){
-        JSONObject msg=new JSONObject();
-        msg.put("from",PrismGameVariable.userName);
-        msg.put("type","loop");
-        msg.put("data",getData());
-        msg.put("time",System.currentTimeMillis());
-        PrismGameVariable.socket.emit("clientRoomMessage",msg );
+        if(!status.equals("init")&&!status.equals("ready")) {
+            JSONObject msg = new JSONObject();
+            msg.put("from", PrismGameVariable.userName);
+            msg.put("type", "loop");
+            msg.put("data", getData());
+            msg.put("time", System.currentTimeMillis());
+            PrismGameVariable.socket.emit("clientRoomMessage", msg);
+            //System.out.println("send "+msg);
+        }
     }
     void updateData(JSONObject jo){
+        //System.out.println("got "+jo);
         if(jo.getString("type").equals("init")){
             startTime=jo.getLong("startTime");
             tumoData= jo.getString("tumoData");
@@ -872,7 +878,7 @@ public class PrismGamePuyopuyo {
             if(!ojamaStarting.containsKey(dataFrom)){
                 ojamaStarting.put(dataFrom,new ArrayList<>());
             }
-            System.out.println(jo);
+
             if(jo.getBoolean("ojamaStart")) {
                 ojamaStarting.get(dataFrom).add(false);
                 myOjama.get(dataFrom).add(jo.getInt("ojamaKosuu"));
@@ -884,10 +890,11 @@ public class PrismGamePuyopuyo {
                 ojamaStarting.get(dataFrom).set(ojamaIndex.get(dataFrom),true);
 
             }
-            System.out.println(myOjama.get(dataFrom));
+            //System.out.println(myOjama.get(dataFrom));
         }
     }
     void draw(){
+
         glBegin(GL_TRIANGLE_FAN);
         glColor4d(1, 1, 1, 1);
         glVertex2d(-1, -1);

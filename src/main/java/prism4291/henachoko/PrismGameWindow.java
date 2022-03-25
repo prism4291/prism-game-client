@@ -30,10 +30,14 @@ public class PrismGameWindow {
             }
             if ((currentTime - FPSFrom) * PrismGameVariable.FPS >= frameFromStart * 1000) {
                 frameFromStart++;
+
                 if ((currentTime - FPSFrom) * PrismGameVariable.FPS < frameFromStart * 1000) {
-                    mm.Main();
+                    mm.Main(true);
                     GLFW.glfwSwapBuffers(PrismGameVariable.WIN);
+                    GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
                     PrismGameVariable.CURRENT_FPS++;
+                }else{
+                    mm.Main(false);
                 }
             }
             GLFW.glfwPollEvents();
