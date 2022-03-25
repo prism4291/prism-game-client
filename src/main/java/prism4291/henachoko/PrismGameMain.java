@@ -186,12 +186,14 @@ public class PrismGameMain {
         if(flag) {
             prismGamePuyopuyo.draw();
         }
-        if(fuse%5==0) {
+        if(fuse%10==0) {
             prismGamePuyopuyo.PuyoSend();
         }
         //System.out.println(PLAYERDATA);
         JSONArray tmpDATA=new JSONArray(PLAYERDATA.toString());
-        PLAYERDATA.clear();
+        for(int i=0;i<tmpDATA.length();i++){
+            PLAYERDATA.remove(0);
+        }
         long[] times= new long[tmpDATA.length()];
         for(int n=0;n<tmpDATA.length();n++){
             times[n]=tmpDATA.getJSONObject(n).getLong("time");
