@@ -137,7 +137,7 @@ public class PrismGameMain {
             }
         } else if (seq == 2) {
             int res = showHost();
-            if(res==1|| KEY_BUTTON[GLFW.GLFW_KEY_A]==1){
+            if(res==1){
 
                 PrismGameVariable.socket.emit("clientStartGame",currentRoom.toString());
             }
