@@ -578,6 +578,23 @@ public class PrismGamePuyopuyo {
 
                 break;
         }
+        for(String str:opponentCurrentPuyo.keySet()){
+            if(opponentCurrentPuyo.get(str)!=null){
+                moveFrame(opponentCurrentPuyo.get(str));
+            }
+        }
+        for(String str:opponentCurrentPuyoSub.keySet()){
+            if(opponentCurrentPuyoSub.get(str)!=null){
+                moveFrame(opponentCurrentPuyoSub.get(str));
+            }
+        }
+        for(String str:opponentPuyos.keySet()){
+            if(opponentPuyos.get(str)!=null){
+                for(Puyopuyo puyo:opponentPuyos.get(str)){
+                    moveFrame(puyo);
+                }
+            }
+        }
         //System.out.println(status);
         //draw();
         return 0;

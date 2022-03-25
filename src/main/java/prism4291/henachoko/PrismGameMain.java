@@ -186,7 +186,7 @@ public class PrismGameMain {
         if(flag) {
             prismGamePuyopuyo.draw();
         }
-        if(fuse%4==0) {
+        if(fuse%5==0) {
             prismGamePuyopuyo.PuyoSend();
         }
         //System.out.println(PLAYERDATA);
