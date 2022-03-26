@@ -276,7 +276,7 @@ public class PrismGamePuyopuyo {
     void setTheta(){
         theta=Math.PI*muki*0.5;
     }
-    boolean hasOjama(){
+    int ojamaCount(boolean flag){
         int n=0;
         if(myOjama!=null) {
             for (String str : myOjama.keySet()) {
@@ -284,13 +284,13 @@ public class PrismGamePuyopuyo {
                     continue;
                 }
                 for (int i = 0; i < myOjama.get(str).size();i++){
-                    if(ojamaStarting.get(str).get(i)) {
+                    if(flag&&ojamaStarting.get(str).get(i)) {
                         n += myOjama.get(str).get(i);
                     }
                 }
             }
         }
-        return n>0;
+        return n;
     }
     void ojamaRakka(){
         int n=0;
@@ -557,7 +557,7 @@ public class PrismGamePuyopuyo {
                             sendOjama(0, rensaSuu, true);
                         }
                         if(ojamaFlag) {
-                            if (hasOjama()) {
+                            if (ojamaCount(true)>0) {
                                 ojamaRakka();
                                 ojamaFlag=false;
                                 status="fall";
@@ -600,10 +600,32 @@ public class PrismGamePuyopuyo {
         return 0;
     }
     void sendOjama(int n,int r,boolean end){
+        int nn=n/ojamaRate;
+        if(myOjama!=null) {
+            for (String str : myOjama.keySet()) {
+                if (str.equals(PrismGameVariable.userName)) {
+                    continue;
+                }
+                if(nn==0){
+                    break;
+                }
+                for (int i = 0; i < myOjama.get(str).size();i++){
+                    
+                    if(myOjama.get(str).get(i)-nn<=0){
+                        nn-=myOjama.get(str).get(i);
+                        myOjama.get(str).set(0);
+                    }else{
+                        myOjama.get(str).set(myOjama.get(str).get(i)-nn);
+                        nn=0;
+                        break;
+                    }
+                }
+            }
+        }
         JSONObject msg = new JSONObject();
         msg.put("from",PrismGameVariable.userName);
         msg.put("type","ojama");
-        msg.put("ojamaKosuu",n/ojamaRate);
+        msg.put("ojamaKosuu",nn);
         msg.put("ojamaStart",r<=1);
         msg.put("ojamaLast",end);
         msg.put("time",System.currentTimeMillis());
