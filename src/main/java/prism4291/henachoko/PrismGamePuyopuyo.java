@@ -64,6 +64,7 @@ public class PrismGamePuyopuyo {
     Map<String,List<Integer>> myOjama;
     Map<String,List<Boolean>> ojamaStarting;
     boolean ojamaFlag;
+    List<Integer> nexts;
     PrismGamePuyopuyo(){
         status="init";
         puyos=new ArrayList<>();
@@ -101,6 +102,7 @@ public class PrismGamePuyopuyo {
         myOjama=new HashMap<>();
         ojamaStarting=new HashMap<>();
         ojamaFlag=true;
+        nexts=new ArrayList<>();
     }
     void createPuyo(int color1, int color2){
 
@@ -347,6 +349,20 @@ public class PrismGamePuyopuyo {
 //        currentPuyo.frameMaxY=n;
 //
 //    }
+    void setNexts(){
+        for(int i=0;i<6-nexts.length;i++){
+            if(tumoIndex>=tumoData.length()){
+                tumoIndex=0;
+            }
+            nexts.add(Integer.parseInt(tumoData.substring(tumoIndex,tumoIndex+1)));
+            tumoIndex++;
+        }
+    }
+    int getNexts(){
+        int n=nexts.get(0);
+        nexts.remove(0);
+        return n;
+    }
     int PuyoLoop(){
         if(yokocooldown>0){
             yokocooldown--;
@@ -391,12 +407,9 @@ public class PrismGamePuyopuyo {
                     beforeRotate=-1;
                 }
                 if(timenext>=30) {
-
-                    createPuyo(Integer.parseInt(tumoData.substring(tumoIndex,tumoIndex+1)),Integer.parseInt(tumoData.substring(tumoIndex+1,tumoIndex+2)));
-                    tumoIndex+=2;
-                    if(tumoIndex>=tumoData.length()){
-                        tumoIndex=0;
-                    }
+                    setNexts();
+                    createPuyo(getNexts(),getNexts());
+                    
                     delay = 0;
                     canFall = true;
                     status = "move";
@@ -962,6 +975,7 @@ public class PrismGamePuyopuyo {
                 drawPuyoSub(currentPuyo,currentPuyoSub,theta-puyoRotate+puyoRotate*frameTheta/frameMaxTheta,0);
             }
         }
+        drawNexts(nexts);
 
         //opponent
 
@@ -1030,6 +1044,19 @@ public class PrismGamePuyopuyo {
         glVertex2d(calWinX(puyo.puyoX- puyo.puyoMoveX+ puyo.puyoMoveX* puyo.frameX/ puyo.frameMaxX+1+Math.cos(t), n), calWinY(puyo.puyoY- puyo.puyoMoveY+ puyo.puyoMoveY* puyo.frameY/ puyo.frameMaxY+Math.sin(t),n));
         glEnd();
 
+    }
+    void drawNexts(List<Integer> ns,int n){
+        int x=puyoMaxX+1;
+        for(int y=0;y<3;y++){
+            glBegin(GL_QUADS);
+        changePuyoColor(ns.get(y));
+        glVertex2d(calWinX(x, n), calWinY(y,n));
+       glVertex2d(calWinX(x, n), calWinY(y,n));
+        glVertex2d(calWinX(x+ 1, n), calWinY(y+1,n));
+        glVertex2d(calWinX(x+1, n), calWinY(y,n));
+        glEnd();
+        }
+        
     }
     double calWinX(double x,int n){
         return -1+x*9.0/120+0.2+n*1.2;
