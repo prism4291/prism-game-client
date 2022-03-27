@@ -350,7 +350,7 @@ public class PrismGamePuyopuyo {
 //
 //    }
     void setNexts(){
-        for(int i=0;i<6-nexts.length;i++){
+        for(int i=0;i<6-nexts.size();i++){
             if(tumoIndex>=tumoData.length()){
                 tumoIndex=0;
             }
@@ -626,9 +626,9 @@ public class PrismGamePuyopuyo {
                     
                     if(myOjama.get(str).get(i)-nn<=0){
                         nn-=myOjama.get(str).get(i);
-                        myOjama.get(str).set(0);
+                        myOjama.get(str).set(i,0);
                     }else{
-                        myOjama.get(str).set(myOjama.get(str).get(i)-nn);
+                        myOjama.get(str).set(i,myOjama.get(str).get(i)-nn);
                         nn=0;
                         break;
                     }
@@ -975,7 +975,7 @@ public class PrismGamePuyopuyo {
                 drawPuyoSub(currentPuyo,currentPuyoSub,theta-puyoRotate+puyoRotate*frameTheta/frameMaxTheta,0);
             }
         }
-        drawNexts(nexts);
+        drawNexts(nexts,0);
 
         //opponent
 
