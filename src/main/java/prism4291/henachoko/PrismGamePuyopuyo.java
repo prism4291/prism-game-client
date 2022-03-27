@@ -350,7 +350,7 @@ public class PrismGamePuyopuyo {
 //
 //    }
     void setNexts(){
-        for(int i=0;i<6-nexts.size();i++){
+        while(nexts.size()<6){
             if(tumoIndex>=tumoData.length()){
                 tumoIndex=0;
             }
@@ -1047,14 +1047,23 @@ public class PrismGamePuyopuyo {
     }
     void drawNexts(List<Integer> ns,int n){
         int x=puyoMaxX+1;
-        for(int y=0;y<3;y++){
-            glBegin(GL_QUADS);
-        changePuyoColor(ns.get(y));
-        glVertex2d(calWinX(x, n), calWinY(y,n));
-       glVertex2d(calWinX(x, n), calWinY(y,n));
-        glVertex2d(calWinX(x+ 1, n), calWinY(y+1,n));
-        glVertex2d(calWinX(x+1, n), calWinY(y,n));
-        glEnd();
+        int yy=3;
+        for(int y=0;y<4;y++){
+            switch(y){
+                case 1 -> yy=2;
+                case 2 -> yy=6;
+                case 3 -> yy=5;
+            }
+            if(ns.size()>y) {
+                glBegin(GL_QUADS);
+
+                changePuyoColor(ns.get(y));
+                glVertex2d(calWinX(x, n), calWinY(yy, n));
+                glVertex2d(calWinX(x, n), calWinY(yy+1, n));
+                glVertex2d(calWinX(x + 1, n), calWinY(yy + 1, n));
+                glVertex2d(calWinX(x + 1, n), calWinY(yy, n));
+                glEnd();
+            }
         }
         
     }
