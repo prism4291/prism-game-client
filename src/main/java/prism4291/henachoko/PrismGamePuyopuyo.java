@@ -65,6 +65,8 @@ public class PrismGamePuyopuyo {
     Map<String,List<Boolean>> ojamaStarting;
     boolean ojamaFlag;
     List<Integer> nexts;
+    Map<Integer,Integer> puyoTextures;//0-3,5,9-15
+    List<Integer> ojamaYokoku;
     PrismGamePuyopuyo(){
         status="init";
         puyos=new ArrayList<>();
@@ -103,6 +105,8 @@ public class PrismGamePuyopuyo {
         ojamaStarting=new HashMap<>();
         ojamaFlag=true;
         nexts=new ArrayList<>();
+        puyoTextures=new HashMap<>();
+        ojamaYokoku=new ArrayList<>();
     }
     void createPuyo(int color1, int color2){
 
@@ -278,7 +282,7 @@ public class PrismGamePuyopuyo {
     void setTheta(){
         theta=Math.PI*muki*0.5;
     }
-    int ojamaCount(boolean flag){
+    int ojamaCount(boolean flag){//true huraseru
         int n=0;
         if(myOjama!=null) {
             for (String str : myOjama.keySet()) {
@@ -286,13 +290,42 @@ public class PrismGamePuyopuyo {
                     continue;
                 }
                 for (int i = 0; i < myOjama.get(str).size();i++){
-                    if(flag&&ojamaStarting.get(str).get(i)) {
+                    if(!flag || ojamaStarting.get(str).get(i)) {
                         n += myOjama.get(str).get(i);
                     }
                 }
             }
         }
         return n;
+    }
+    void setOjamaYokoku(){
+        ojamaYokoku=new ArrayList<>();
+        int n=ojamaCount(false);
+        for(int i=0;i<6;i++){
+            if(n>=1440){
+                n-=1440;
+                ojamaYokoku.add(15);
+            }else if(n>=720){
+                n-=720;
+                ojamaYokoku.add(14);
+            }else if(n>=360){
+                n-=360;
+                ojamaYokoku.add(13);
+            }else if(n>=180){
+                n-=180;
+                ojamaYokoku.add(12);
+            }else if(n>=30){
+                n-=30;
+                ojamaYokoku.add(11);
+            }else if(n>=6){
+                n-=6;
+                ojamaYokoku.add(10);
+            }else if(n>=1){
+                n-=1;
+                ojamaYokoku.add(9);
+            }
+
+        }
     }
     void ojamaRakka(){
         int n=0;
@@ -323,7 +356,7 @@ public class PrismGamePuyopuyo {
             }
 
         }
-
+        setOjamaYokoku();
     }
     void putOjama(int x){
         Puyopuyo puyopuyo=new Puyopuyo(5);
@@ -643,6 +676,7 @@ public class PrismGamePuyopuyo {
         msg.put("ojamaLast",end);
         msg.put("time",System.currentTimeMillis());
         PrismGameVariable.socket.emit("clientRoomMessage",msg );
+        setOjamaYokoku();
     }
     int kesuCheck(int x,int y,Puyopuyo puyopuyo,int kosuu,boolean flag){
         if(flag){
@@ -943,6 +977,7 @@ public class PrismGamePuyopuyo {
 
             }
             //System.out.println(myOjama.get(dataFrom));
+            setOjamaYokoku();
         }
     }
     void draw(){
@@ -976,7 +1011,7 @@ public class PrismGamePuyopuyo {
             }
         }
         drawNexts(nexts,0);
-
+        drawYokoku(ojamaYokoku,0);
         //opponent
 
         glBegin(GL_QUADS);
@@ -1014,7 +1049,13 @@ public class PrismGamePuyopuyo {
             case 2 -> glColor4d(0, 0, 1, 1);
             case 3 -> glColor4d(1, 1, 0, 1);
             case 5 -> glColor4d(0.8,0.8,0.8,1);
-
+            case 9 -> glColor4d(0.9,0.9,0.9,1);
+            case 10-> glColor4d(0.6,0.6,0.6,1);
+            case 11 -> glColor4d(0.7,0.5,0.5,1);
+            case 12 -> glColor4d(0.7,0.7,0.5,1);
+            case 13 -> glColor4d(0.5,0.5,0.3,1);
+            case 14 -> glColor4d(0.3,0.3,0.1,1);
+            case 15 -> glColor4d(0.3,0.3,0.5,1);
         }
     }
     void drawPuyo(Puyopuyo puyo,int n){
@@ -1066,6 +1107,19 @@ public class PrismGamePuyopuyo {
             }
         }
         
+    }
+    void drawYokoku(List<Integer> yokoku,int n){
+        int y=1;
+        for(int x=0;x<yokoku.size();x++){
+            glBegin(GL_QUADS);
+            changePuyoColor(yokoku.get(x));
+            glVertex2d(calWinX(x, n), calWinY(y, n));
+            glVertex2d(calWinX(x, n), calWinY(y+1, n));
+            glVertex2d(calWinX(x + 1, n), calWinY(y + 1, n));
+            glVertex2d(calWinX(x + 1, n), calWinY(y, n));
+            glEnd();
+
+        }
     }
     double calWinX(double x,int n){
         return -1+x*9.0/120+0.2+n*1.2;
