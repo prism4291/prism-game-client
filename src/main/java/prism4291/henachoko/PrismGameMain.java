@@ -1,6 +1,7 @@
 package prism4291.henachoko;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
@@ -215,29 +216,38 @@ public class PrismGameMain {
             prismGamePuyopuyo.PuyoSend();
         }
         //System.out.println(PLAYERDATA);
+
         JSONArray tmpDATA=new JSONArray(PLAYERDATA.toString());
         for(int i=0;i<tmpDATA.length();i++){
             PLAYERDATA.remove(0);
         }
         long[] times= new long[tmpDATA.length()];
         for(int n=0;n<tmpDATA.length();n++){
-            times[n]=tmpDATA.getJSONObject(n).getLong("time");
+            try {
+                times[n] = tmpDATA.getJSONObject(n).getLong("time");
+            }catch (JSONException e){
+                times[n]=-1;
+            }
         }
         for(int m=0;m<tmpDATA.length();m++){
             for(int n=0;n<tmpDATA.length()-1;n++){
-                if(times[n]>times[n+1]){
-                    long t=times[n];
-                    times[n]=times[n+1];
-                    times[n+1]=t;
-                    JSONObject jo=tmpDATA.getJSONObject(n);
-                    tmpDATA.put(n,tmpDATA.getJSONObject(n+1));
-                    tmpDATA.put(n+1,jo);
+                if(times[n]>=0&&times[n+1]>=0) {
+                    if (times[n] > times[n + 1]) {
+                        long t = times[n];
+                        times[n] = times[n + 1];
+                        times[n + 1] = t;
+                        JSONObject jo = tmpDATA.getJSONObject(n);
+                        tmpDATA.put(n, tmpDATA.getJSONObject(n + 1));
+                        tmpDATA.put(n + 1, jo);
+                    }
                 }
             }
         }
         for(int n=0;n<tmpDATA.length();n++){
-            JSONObject jo=tmpDATA.getJSONObject(n);
-            prismGamePuyopuyo.updateData(jo);
+            if(times[n]>=0) {
+                JSONObject jo = tmpDATA.getJSONObject(n);
+                prismGamePuyopuyo.updateData(jo);
+            }
         }
 
         return 0;
