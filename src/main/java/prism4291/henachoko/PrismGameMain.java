@@ -190,7 +190,6 @@ public class PrismGameMain {
                 int res = MainGame(flag);
                 if (res == 1) {
                     JSONObject msg = new JSONObject();
-                    msg.put("time", System.currentTimeMillis() + 5000);
                     PrismGameVariable.socket.emit("clientReStartGame", msg.toString());
                 }
             }else{
@@ -212,7 +211,7 @@ public class PrismGameMain {
         if(flag) {
             prismGamePuyopuyo.draw();
         }
-        if(fuse%10==0) {
+        if(fuse%20==0) {
             prismGamePuyopuyo.PuyoSend();
         }
         //System.out.println(PLAYERDATA);
