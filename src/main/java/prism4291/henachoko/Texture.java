@@ -14,7 +14,7 @@ import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 
 public class Texture{
 
-    private int id;
+    private final int id;
 
     public Texture(int id){
         this.id = id;

@@ -1,11 +1,9 @@
 package prism4291.henachoko;
 
-import com.google.gson.JsonElement;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.lwjgl.glfw.GLFW;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.system.CallbackI;
 
 import java.util.*;
 
@@ -126,7 +124,7 @@ public class PrismGamePuyopuyo {
 
     }
 
-    class Puyopuyo {
+    static class Puyopuyo {
         int puyoColor;
         int puyoX;
         int puyoY;
@@ -737,18 +735,18 @@ public class PrismGamePuyopuyo {
         Puyopuyo puyo;
         for (int n = 0; n < 4; n++) {
             switch (n) {
-                case 1 -> {
+                case 1:
                     addX = 0;
                     addY = 1;
-                }
-                case 2 -> {
+                    break;
+                case 2:
                     addX = -1;
                     addY = 0;
-                }
-                case 3 -> {
+                    break;
+                case 3:
                     addX = 0;
                     addY = -1;
-                }
+                    break;
             }
             if (x + addX >= 0 && x + addX < puyoMaxX && y + addY >= 2 && y + addY < puyoMaxY) {
                 puyo = backPuyos.get(calPuyoMap(x + addX, y + addY));
@@ -945,10 +943,18 @@ public class PrismGamePuyopuyo {
         sub.puyoX = main.puyoX;
         sub.puyoY = main.puyoY;
         switch (muki) {
-            case 0 -> sub.puyoX += 1;
-            case 1 -> sub.puyoY += 1;
-            case 2 -> sub.puyoX -= 1;
-            case 3 -> sub.puyoY -= 1;
+            case 0:
+                sub.puyoX += 1;
+                break;
+            case 1:
+                sub.puyoY += 1;
+                break;
+            case 2:
+                sub.puyoX -= 1;
+                break;
+            case 3:
+                sub.puyoY -= 1;
+                break;
         }
         sub.frameX = 0;
         sub.frameY = 0;
@@ -1132,18 +1138,42 @@ public class PrismGamePuyopuyo {
 
     void changePuyoColor(int c) {
         switch (c) {
-            case 0 -> glColor4d(1, 0, 0, 1);
-            case 1 -> glColor4d(0, 1, 0, 1);
-            case 2 -> glColor4d(0, 0, 1, 1);
-            case 3 -> glColor4d(1, 1, 0, 1);
-            case 5 -> glColor4d(0.8, 0.8, 0.8, 1);
-            case 9 -> glColor4d(0.9, 0.9, 0.9, 1);
-            case 10 -> glColor4d(0.6, 0.6, 0.6, 1);
-            case 11 -> glColor4d(0.7, 0.5, 0.5, 1);
-            case 12 -> glColor4d(0.7, 0.7, 0.5, 1);
-            case 13 -> glColor4d(0.5, 0.5, 0.3, 1);
-            case 14 -> glColor4d(0.3, 0.3, 0.1, 1);
-            case 15 -> glColor4d(0.3, 0.3, 0.5, 1);
+            case 0:
+                glColor4d(1, 0, 0, 1);
+                break;
+            case 1:
+                glColor4d(0, 1, 0, 1);
+                break;
+            case 2:
+                glColor4d(0, 0, 1, 1);
+                break;
+            case 3:
+                glColor4d(1, 1, 0, 1);
+                break;
+            case 5:
+                glColor4d(0.8, 0.8, 0.8, 1);
+                break;
+            case 9:
+                glColor4d(0.9, 0.9, 0.9, 1);
+                break;
+            case 10:
+                glColor4d(0.6, 0.6, 0.6, 1);
+                break;
+            case 11:
+                glColor4d(0.7, 0.5, 0.5, 1);
+                break;
+            case 12:
+                glColor4d(0.7, 0.7, 0.5, 1);
+                break;
+            case 13:
+                glColor4d(0.5, 0.5, 0.3, 1);
+                break;
+            case 14:
+                glColor4d(0.3, 0.3, 0.1, 1);
+                break;
+            case 15:
+                glColor4d(0.3, 0.3, 0.5, 1);
+                break;
         }
     }
 
@@ -1182,9 +1212,15 @@ public class PrismGamePuyopuyo {
         int yy = 3;
         for (int y = 0; y < 4; y++) {
             switch (y) {
-                case 1 -> yy = 2;
-                case 2 -> yy = 6;
-                case 3 -> yy = 5;
+                case 1:
+                    yy = 2;
+                    break;
+                case 2:
+                    yy = 6;
+                    break;
+                case 3:
+                    yy = 5;
+                    break;
             }
             if (ns.size() > y) {
                 glBegin(GL_QUADS);
@@ -1220,6 +1256,9 @@ public class PrismGamePuyopuyo {
     }
 
     double calWinY(double y, int n) {
-        return 1 - y * 16.0 / 120 + 0.1;
+        if(n<2){
+            return 1 - y * 16.0 / 120 + 0.1;
+        }
+        return 1 - y * 16.0 / 120 + 0.5;
     }
 }

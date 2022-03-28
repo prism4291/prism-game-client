@@ -1,12 +1,14 @@
 package prism4291.henachoko;
 
-import java.util.Arrays;
-import java.util.Objects;
-
-import org.lwjgl.glfw.*;
+import org.lwjgl.glfw.Callbacks;
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryUtil;
+
+import java.util.Objects;
 
 import static prism4291.henachoko.PrismGameVariable.WIN;
 
@@ -82,8 +84,8 @@ public class PrismGameWindow {
         GLFW.glfwSetMouseButtonCallback(WIN, (win, button, action, mods) -> {
             if(button>=0) {
                 switch (action) {
-                    case GLFW.GLFW_PRESS -> PrismGameVariable.MOUSE_BUTTON[button] = 1;
-                    case GLFW.GLFW_RELEASE -> PrismGameVariable.MOUSE_BUTTON[button] = -PrismGameVariable.MOUSE_BUTTON[button];
+                    case GLFW.GLFW_PRESS : PrismGameVariable.MOUSE_BUTTON[button] = 1;break;
+                    case GLFW.GLFW_RELEASE : PrismGameVariable.MOUSE_BUTTON[button] = -PrismGameVariable.MOUSE_BUTTON[button];break;
                 }
             }
             //System.out.println(Variable.MOUSE_BUTTON[button]);
@@ -98,8 +100,8 @@ public class PrismGameWindow {
                 //System.out.println(action);
                 if(key>=0) {
                     switch (action) {
-                        case GLFW.GLFW_PRESS -> PrismGameVariable.KEY_BUTTON[key] = 1;
-                        case GLFW.GLFW_RELEASE -> PrismGameVariable.KEY_BUTTON[key] = -PrismGameVariable.KEY_BUTTON[key];
+                        case GLFW.GLFW_PRESS : PrismGameVariable.KEY_BUTTON[key] = 1;break;
+                        case GLFW.GLFW_RELEASE : PrismGameVariable.KEY_BUTTON[key] = -PrismGameVariable.KEY_BUTTON[key];break;
                     }
                 }
             }

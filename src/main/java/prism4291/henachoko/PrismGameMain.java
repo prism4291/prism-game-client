@@ -171,7 +171,7 @@ public class PrismGameMain {
             }
 
         }else if(seq==4){
-            int res=showJoinedRoom();
+            showJoinedRoom();
             if (gameStarting) {
                 seq = 5;
                 isHost=false;
@@ -295,22 +295,22 @@ public class PrismGameMain {
         glEnd();
         glColor4d(0, 1, 0, 1);
         switch (menuSelect) {
-            case 0 -> {
+            case 0:
                 glBegin(GL_TRIANGLE_FAN);
                 glVertex2d(-0.8, -1);
                 glVertex2d(-0.8, 1);
                 glVertex2d(-0.1, 1);
                 glVertex2d(-0.1, -1);
                 glEnd();
-            }
-            case 1 -> {
+            break;
+            case 1:
                 glBegin(GL_TRIANGLE_FAN);
                 glVertex2d(0.1, -1);
                 glVertex2d(0.1, 1);
                 glVertex2d(0.8, 1);
                 glVertex2d(0.8, -1);
                 glEnd();
-            }
+           break;
         }
         glColor4d(1, 1, 1, 1);
         glBindTexture(GL_TEXTURE_2D, images.get("host").getId());
@@ -488,7 +488,7 @@ public class PrismGameMain {
         }
         return 0;
     }
-    int showJoinedRoom() {
+    void showJoinedRoom() {
         if(memberUpdated){
             updateMember();
         }
@@ -535,7 +535,6 @@ public class PrismGameMain {
                 y -= 0.1;
             }
         }
-        return 0;
     }
     void myActionMain() {
         for (int i = 0; i < MOUSE_BUTTON.length; i++) {
