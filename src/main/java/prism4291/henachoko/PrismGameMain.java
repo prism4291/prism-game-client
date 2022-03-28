@@ -84,6 +84,7 @@ public class PrismGameMain {
             JSONObject jo = (JSONObject) objects[0];
             //System.out.println(jo);
             roomList = jo.getJSONArray("rooms");
+            roomTexts=null;
 
         });
         PrismGameVariable.socket.on("serverJoinRoomRes", objects -> {
@@ -146,6 +147,11 @@ public class PrismGameMain {
                 isHost=true;
             }
         } else if (seq == 3) {
+            if(fuse%300==0){
+                PrismGameVariable.socket.emit("clientGetRoom");
+
+            }
+
             int res = showGuest();
             //System.out.println(res);
             if (res > 0) {

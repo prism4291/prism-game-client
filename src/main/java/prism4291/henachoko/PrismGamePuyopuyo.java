@@ -31,6 +31,7 @@ public class PrismGamePuyopuyo {
     static int delayMax=50;
     static int ojamaRate=70;
     static int maxOjama=30;
+    static int maxErasingTime=50;
     int muki;
     double theta;
     int delay;
@@ -63,10 +64,13 @@ public class PrismGamePuyopuyo {
     Map<String,Integer> ojamaIndex;
     Map<String,List<Integer>> myOjama;
     Map<String,List<Boolean>> ojamaStarting;
+    Map<String,List<Integer>> opponentOjamaYokoku;
     boolean ojamaFlag;
     List<Integer> nexts;
+    Map<String,List<Integer>> opponentNexts;
     Map<Integer,Integer> puyoTextures;//0-3,5,9-15
     List<Integer> ojamaYokoku;
+    int erasingTime;
     PrismGamePuyopuyo(){
         status="init";
         puyos=new ArrayList<>();
@@ -107,6 +111,9 @@ public class PrismGamePuyopuyo {
         nexts=new ArrayList<>();
         puyoTextures=new HashMap<>();
         ojamaYokoku=new ArrayList<>();
+        erasingTime=0;
+        opponentOjamaYokoku=new HashMap<>();
+        opponentNexts=new HashMap<>();
     }
     void createPuyo(int color1, int color2){
 
@@ -298,34 +305,35 @@ public class PrismGamePuyopuyo {
         }
         return n;
     }
-    void setOjamaYokoku(){
-        ojamaYokoku=new ArrayList<>();
-        int n=ojamaCount(false);
+    List<Integer> setOjamaYokoku(int n){
+        List<Integer> o=new ArrayList<>();
+
         for(int i=0;i<6;i++){
             if(n>=1440){
                 n-=1440;
-                ojamaYokoku.add(15);
+                o.add(15);
             }else if(n>=720){
                 n-=720;
-                ojamaYokoku.add(14);
+                o.add(14);
             }else if(n>=360){
                 n-=360;
-                ojamaYokoku.add(13);
+                o.add(13);
             }else if(n>=180){
                 n-=180;
-                ojamaYokoku.add(12);
+                o.add(12);
             }else if(n>=30){
                 n-=30;
-                ojamaYokoku.add(11);
+                o.add(11);
             }else if(n>=6){
                 n-=6;
-                ojamaYokoku.add(10);
+                o.add(10);
             }else if(n>=1){
                 n-=1;
-                ojamaYokoku.add(9);
+                o.add(9);
             }
 
         }
+        return o;
     }
     void ojamaRakka(){
         int n=0;
@@ -356,7 +364,7 @@ public class PrismGamePuyopuyo {
             }
 
         }
-        setOjamaYokoku();
+        ojamaYokoku= setOjamaYokoku(ojamaCount(false));
     }
     void putOjama(int x){
         Puyopuyo puyopuyo=new Puyopuyo(5);
@@ -538,12 +546,13 @@ public class PrismGamePuyopuyo {
                     rensaBonus=0;
                     kosuuCount=0;
                     kesuColors.clear();
+                    erasingTime=0;
                 }
-                if(kesuCheckY<puyoMaxY){
-                    for(int x=0;x<puyoMaxX;x++){
-                        Puyopuyo puyopuyo=backPuyos.get(calPuyoMap(x,kesuCheckY));
-                        if(puyopuyo!=null&&kesuMap.get(calPuyoMap(x,kesuCheckY))==0){
-                            if(puyopuyo.puyoColor<=4) {
+                if(kesuCheckY<puyoMaxY) {
+                    for (int x = 0; x < puyoMaxX; x++) {
+                        Puyopuyo puyopuyo = backPuyos.get(calPuyoMap(x, kesuCheckY));
+                        if (puyopuyo != null && kesuMap.get(calPuyoMap(x, kesuCheckY)) == 0) {
+                            if (puyopuyo.puyoColor <= 4) {
                                 int kosuu = kesuCheck(x, kesuCheckY, puyopuyo, 1, false);
                                 //System.out.println(kosuu);
                                 if (kosuu >= 4) {
@@ -559,7 +568,9 @@ public class PrismGamePuyopuyo {
                             }
                         }
                     }
-                    kesuCheckY+=1;
+                    kesuCheckY += 1;
+                }else if((erasingTime<maxErasingTime&&rensaSuu>0)||(erasingTime<15)){
+                    erasingTime+=1;
                 }else{
                     kesuFlag=false;
                     for(int x=0;x<puyoMaxX;x++){
@@ -676,7 +687,7 @@ public class PrismGamePuyopuyo {
         msg.put("ojamaLast",end);
         msg.put("time",System.currentTimeMillis());
         PrismGameVariable.socket.emit("clientRoomMessage",msg );
-        setOjamaYokoku();
+        ojamaYokoku= setOjamaYokoku(ojamaCount(false));
     }
     int kesuCheck(int x,int y,Puyopuyo puyopuyo,int kosuu,boolean flag){
         if(flag){
@@ -914,7 +925,13 @@ public class PrismGamePuyopuyo {
                 jo.put("currentPuyoSub", currentPuyoSub.toJson());
             }
         }
+        jo.put("ojamaNoKazu",ojamaCount(false));
         jo.put("thetaData",theta-puyoRotate+puyoRotate*frameTheta/frameMaxTheta);
+        JSONArray nextsArray=new JSONArray();
+        for(int n:nexts){
+            nextsArray.put(n);
+        }
+        jo.put("nexts",nextsArray);
         return jo;
     }
     void PuyoSend(){
@@ -953,6 +970,13 @@ public class PrismGamePuyopuyo {
             }
             opponentThetaData.put(dataFrom,data.getDouble("thetaData"));
 
+            opponentOjamaYokoku.put(dataFrom,setOjamaYokoku(data.getInt("ojamaNoKazu")));
+            List<Integer> nextsList=new ArrayList<>();
+            for(Object o:data.getJSONArray("nexts")){
+                nextsList.add((int)o);
+            }
+            opponentNexts.put(dataFrom,nextsList);
+
         }else if(jo.getString("type").equals("ojama")){
             String dataFrom=jo.getString("from");
             if(!ojamaIndex.containsKey(dataFrom)){
@@ -977,7 +1001,7 @@ public class PrismGamePuyopuyo {
 
             }
             //System.out.println(myOjama.get(dataFrom));
-            setOjamaYokoku();
+            ojamaYokoku= setOjamaYokoku(ojamaCount(false));
         }
     }
     void draw(){
@@ -1039,7 +1063,18 @@ public class PrismGamePuyopuyo {
             }
             n++;
         }
-
+        for(String opponent:opponentOjamaYokoku.keySet()) {
+            if (opponent.equals(PrismGameVariable.userName)) {
+                continue;
+            }
+            drawYokoku(opponentOjamaYokoku.get(opponent),1);
+        }
+        for(String opponent:opponentNexts.keySet()) {
+            if (opponent.equals(PrismGameVariable.userName)) {
+                continue;
+            }
+            drawNexts(opponentNexts.get(opponent),1);
+        }
 
     }
     void changePuyoColor(int c){
@@ -1086,6 +1121,7 @@ public class PrismGamePuyopuyo {
         glEnd();
 
     }
+
     void drawNexts(List<Integer> ns,int n){
         int x=puyoMaxX+1;
         int yy=3;
@@ -1120,6 +1156,7 @@ public class PrismGamePuyopuyo {
             glEnd();
 
         }
+
     }
     double calWinX(double x,int n){
         return -1+x*9.0/120+0.2+n*1.2;
