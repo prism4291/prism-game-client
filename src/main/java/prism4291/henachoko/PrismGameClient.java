@@ -16,7 +16,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 public class PrismGameClient {
-    static final int clientVersion=1;
+    static final int clientVersion=2;
     static String keyName="username";
     static String keyPassWord="password";
     public static void main(String[] args) throws URISyntaxException {

@@ -60,6 +60,12 @@ public class PrismGameMain {
                 gameStarting = true;
             }
         });
+        PrismGameVariable.socket.on("serverReStartGame", objects -> {
+            //System.out.println(objects);
+            //JSONObject jo = (JSONObject) objects[0];
+            //System.out.println("serverReStartGame  "+jo);
+            gameStarting=false;
+        });
         currentRoom=null;
         PrismGameVariable.socket.on("serverJoinMember", objects -> {
             JSONObject jo = (JSONObject) objects[0];
@@ -172,14 +178,24 @@ public class PrismGameMain {
 
             }
         } else if (seq == 5) {
-            if(prismGamePuyopuyo==null){
-                prismGamePuyopuyo=new PrismGamePuyopuyo();
-            }
+            if(gameStarting) {
+                if (prismGamePuyopuyo == null) {
+                    prismGamePuyopuyo = new PrismGamePuyopuyo();
+                }
 //            int n=0;
 //            for(Object str:currentRoom.getJSONArray("guest")){
 //                prismGamePuyopuyo.opponents.put(n,(String) str);
 //            }
-            int res = MainGame(flag);
+                int res = MainGame(flag);
+                if (res == 1) {
+                    JSONObject msg = new JSONObject();
+                    msg.put("time", System.currentTimeMillis() + 5000);
+                    PrismGameVariable.socket.emit("clientReStartGame", msg.toString());
+                }
+            }else{
+                prismGamePuyopuyo=new PrismGamePuyopuyo();
+                gameStarting=true;
+            }
 
         }
         //System.out.println(seq);
@@ -189,6 +205,9 @@ public class PrismGameMain {
     int MainGame(boolean flag) {
 
         int res=prismGamePuyopuyo.PuyoLoop();
+        if(res==1&&isHost&&KEY_BUTTON[GLFW.GLFW_KEY_ENTER] == 1){
+            return 1;
+        }
         if(flag) {
             prismGamePuyopuyo.draw();
         }
