@@ -70,7 +70,7 @@ public class PrismGamePuyopuyo {
     List<Integer> ojamaYokoku;
     int erasingTime;
     boolean game_ended;
-
+    int puyoBonusCash;
     PrismGamePuyopuyo() {
         status = "init";
         puyos = new ArrayList<>();
@@ -115,6 +115,7 @@ public class PrismGamePuyopuyo {
         opponentOjamaYokoku = new HashMap<>();
         opponentNexts = new HashMap<>();
         game_ended = false;
+        puyoBonusCash=0;
     }
 
     void createPuyo(int color1, int color2) {
@@ -455,6 +456,7 @@ public class PrismGamePuyopuyo {
                 status = "summon";
                 beforeRotate = 0;
                 ojamaFlag = true;
+                puyoBonusCash=0;
                 break;
             case "summon":
                 timenext++;
@@ -690,7 +692,8 @@ public class PrismGamePuyopuyo {
     }
 
     void sendOjama(int n, int r, boolean end) {
-        int nn = n / ojamaRate;
+        int nn = (n+puyoBonusCash) / ojamaRate;
+        puyoBonusCash=(n+puyoBonusCash)%ojamaRate;
         if (myOjama != null) {
             for (String str : myOjama.keySet()) {
                 if (str.equals(PrismGameVariable.userName)) {
@@ -716,7 +719,7 @@ public class PrismGamePuyopuyo {
         msg.put("from", PrismGameVariable.userName);
         msg.put("type", "ojama");
         msg.put("ojamaKosuu", nn);
-        msg.put("ojamaStart", r <= 1);
+        msg.put("ojamaStart", (r <= 1)&&!end);
         msg.put("ojamaLast", end);
         msg.put("time", System.currentTimeMillis());
         PrismGameVariable.socket.emit("clientRoomMessage", msg);
