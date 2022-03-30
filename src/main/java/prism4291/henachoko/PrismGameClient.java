@@ -6,7 +6,9 @@ import org.json.JSONObject;
 import org.lwjgl.glfw.GLFW;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,6 +24,8 @@ public class PrismGameClient {
     static String keyPassWord = "password";
 
     public static void main(String[] args) throws URISyntaxException {
+
+
         JSONObject userData = getUserData();
         System.out.println(userData);
         if (userData == null) {
@@ -50,12 +54,16 @@ public class PrismGameClient {
         userData.put("version", clientVersion);
         PrismGameVariable.socket.emit("clientLogin", userData.toString());
         PrismGameWindow pgw = new PrismGameWindow();
+
         pgw.run();
         PrismGameVariable.socket.off();
         PrismGameVariable.socket.disconnect();
         PrismGameVariable.socket.close();
 
+
+
     }
+
 
     public static JSONObject getUserData() {
         Path path = Paths.get("prismGameData.txt");

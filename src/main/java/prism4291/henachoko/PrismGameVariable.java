@@ -30,4 +30,5 @@ public class PrismGameVariable {
     public static boolean isHost=true;
     public static JSONArray PLAYERDATA=new JSONArray();
     public static String userName;
+    public static Map<Integer,Texture> MYPUYOTEXTURES=new HashMap<>();
 }

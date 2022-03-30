@@ -7,6 +7,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
@@ -23,21 +25,29 @@ public class Texture{
     public int getId(){
         return id;
     }
-
-    public static Texture loadTexture(String fileName){
-
-        //load png file
+    public static Texture getTexture(Path path){
         PNGDecoder decoder;
-        try {
-            decoder = new PNGDecoder(Texture.class.getResourceAsStream(fileName));
-
+            try {
+                decoder = new PNGDecoder(Files.newInputStream(path));
+                return decodeTexture(decoder);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+    }
+    public static Texture decodeTexture(PNGDecoder decoder){
 
 
         //create a byte buffer big enough to store RGBA values
         ByteBuffer buffer = ByteBuffer.allocateDirect(4 * decoder.getWidth() * decoder.getHeight());
 
         //decode
-        decoder.decode(buffer, decoder.getWidth() * 4, PNGDecoder.Format.RGBA);
+        try {
+            decoder.decode(buffer, decoder.getWidth() * 4, PNGDecoder.Format.RGBA);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
 
         //flip the buffer so its ready to read
         buffer.flip();
@@ -62,6 +72,16 @@ public class Texture{
         glGenerateMipmap(GL_TEXTURE_2D);
 
         return new Texture(id);
+    }
+
+    public static Texture loadTexture(String fileName){
+
+        //load png file
+        PNGDecoder decoder;
+        try {
+            decoder = new PNGDecoder(Texture.class.getResourceAsStream(fileName));
+            return decodeTexture(decoder);
+
         } catch (IOException e) {
             e.printStackTrace();
         }

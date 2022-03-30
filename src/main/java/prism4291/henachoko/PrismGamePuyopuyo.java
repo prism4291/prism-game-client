@@ -4,6 +4,7 @@ package prism4291.henachoko;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.lwjgl.glfw.GLFW;
+import org.lwjgl.opengl.GL11;
 
 import java.util.*;
 
@@ -1139,55 +1140,82 @@ public class PrismGamePuyopuyo {
 
     }
 
-    void changePuyoColor(int c) {
-        switch (c) {
-            case 0:
-                glColor4d(1, 0, 0, 1);
-                break;
-            case 1:
-                glColor4d(0, 1, 0, 1);
-                break;
-            case 2:
-                glColor4d(0, 0, 1, 1);
-                break;
-            case 3:
-                glColor4d(1, 1, 0, 1);
-                break;
-            case 5:
-                glColor4d(0.8, 0.8, 0.8, 1);
-                break;
-            case 9:
-                glColor4d(0.9, 0.9, 0.9, 1);
-                break;
-            case 10:
-                glColor4d(0.6, 0.6, 0.6, 1);
-                break;
-            case 11:
-                glColor4d(0.7, 0.5, 0.5, 1);
-                break;
-            case 12:
-                glColor4d(0.7, 0.7, 0.5, 1);
-                break;
-            case 13:
-                glColor4d(0.5, 0.5, 0.3, 1);
-                break;
-            case 14:
-                glColor4d(0.3, 0.3, 0.1, 1);
-                break;
-            case 15:
-                glColor4d(0.3, 0.3, 0.5, 1);
-                break;
+    boolean changePuyoColor(int c) {
+        boolean hasTexture=false;
+        if(PrismGameVariable.MYPUYOTEXTURES.get(c)!=null){
+            hasTexture=true;
+            glColor4d(1,1,1,1);
+            glEnable(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D,PrismGameVariable.MYPUYOTEXTURES.get(c).getId());
+        }else {
+            switch (c) {
+                case 0:
+
+                    glColor4d(1, 0, 0, 1);
+
+                    break;
+                case 1:
+                    glColor4d(0, 1, 0, 1);
+                    break;
+                case 2:
+                    glColor4d(0, 0, 1, 1);
+                    break;
+                case 3:
+                    glColor4d(1, 1, 0, 1);
+                    break;
+                case 5:
+                    glColor4d(0.8, 0.8, 0.8, 1);
+                    break;
+                case 9:
+                    glColor4d(0.9, 0.9, 0.9, 1);
+                    break;
+                case 10:
+                    glColor4d(0.6, 0.6, 0.6, 1);
+                    break;
+                case 11:
+                    glColor4d(0.7, 0.5, 0.5, 1);
+                    break;
+                case 12:
+                    glColor4d(0.7, 0.7, 0.5, 1);
+                    break;
+                case 13:
+                    glColor4d(0.5, 0.5, 0.3, 1);
+                    break;
+                case 14:
+                    glColor4d(0.3, 0.3, 0.1, 1);
+                    break;
+                case 15:
+                    glColor4d(0.3, 0.3, 0.5, 1);
+                    break;
+            }
         }
+        return hasTexture;
     }
 
     void drawPuyo(Puyopuyo puyo, int n) {
-        glBegin(GL_QUADS);
-        changePuyoColor(puyo.puyoColor);
-        glVertex2d(calWinX(puyo.puyoX - puyo.puyoMoveX + puyo.puyoMoveX * puyo.frameX / puyo.frameMaxX, n), calWinY(puyo.puyoY - puyo.puyoMoveY + puyo.puyoMoveY * puyo.frameY / puyo.frameMaxY, n));
-        glVertex2d(calWinX(puyo.puyoX - puyo.puyoMoveX + puyo.puyoMoveX * puyo.frameX / puyo.frameMaxX, n), calWinY(puyo.puyoY - puyo.puyoMoveY + puyo.puyoMoveY * puyo.frameY / puyo.frameMaxY + 1, n));
-        glVertex2d(calWinX(puyo.puyoX - puyo.puyoMoveX + puyo.puyoMoveX * puyo.frameX / puyo.frameMaxX + 1, n), calWinY(puyo.puyoY - puyo.puyoMoveY + puyo.puyoMoveY * puyo.frameY / puyo.frameMaxY + 1, n));
-        glVertex2d(calWinX(puyo.puyoX - puyo.puyoMoveX + puyo.puyoMoveX * puyo.frameX / puyo.frameMaxX + 1, n), calWinY(puyo.puyoY - puyo.puyoMoveY + puyo.puyoMoveY * puyo.frameY / puyo.frameMaxY, n));
-        glEnd();
+
+        boolean hasTexture= changePuyoColor(puyo.puyoColor);
+        if(hasTexture){
+            glBegin(GL_QUADS);
+            GL11.glTexCoord2f(0, 0);
+            glVertex2d(calWinX(puyo.puyoX - puyo.puyoMoveX + puyo.puyoMoveX * puyo.frameX / puyo.frameMaxX, n), calWinY(puyo.puyoY - puyo.puyoMoveY + puyo.puyoMoveY * puyo.frameY / puyo.frameMaxY, n));
+            GL11.glTexCoord2f(0, 1);
+            glVertex2d(calWinX(puyo.puyoX - puyo.puyoMoveX + puyo.puyoMoveX * puyo.frameX / puyo.frameMaxX, n), calWinY(puyo.puyoY - puyo.puyoMoveY + puyo.puyoMoveY * puyo.frameY / puyo.frameMaxY + 1, n));
+            GL11.glTexCoord2f(1,1);
+            glVertex2d(calWinX(puyo.puyoX - puyo.puyoMoveX + puyo.puyoMoveX * puyo.frameX / puyo.frameMaxX + 1, n), calWinY(puyo.puyoY - puyo.puyoMoveY + puyo.puyoMoveY * puyo.frameY / puyo.frameMaxY + 1, n));
+            GL11.glTexCoord2f(1,0);
+            glVertex2d(calWinX(puyo.puyoX - puyo.puyoMoveX + puyo.puyoMoveX * puyo.frameX / puyo.frameMaxX + 1, n), calWinY(puyo.puyoY - puyo.puyoMoveY + puyo.puyoMoveY * puyo.frameY / puyo.frameMaxY, n));
+            glEnd();
+            glDisable(GL_TEXTURE_2D);
+        }else {
+            glBegin(GL_QUADS);
+            glVertex2d(calWinX(puyo.puyoX - puyo.puyoMoveX + puyo.puyoMoveX * puyo.frameX / puyo.frameMaxX, n), calWinY(puyo.puyoY - puyo.puyoMoveY + puyo.puyoMoveY * puyo.frameY / puyo.frameMaxY, n));
+            glVertex2d(calWinX(puyo.puyoX - puyo.puyoMoveX + puyo.puyoMoveX * puyo.frameX / puyo.frameMaxX, n), calWinY(puyo.puyoY - puyo.puyoMoveY + puyo.puyoMoveY * puyo.frameY / puyo.frameMaxY + 1, n));
+            glVertex2d(calWinX(puyo.puyoX - puyo.puyoMoveX + puyo.puyoMoveX * puyo.frameX / puyo.frameMaxX + 1, n), calWinY(puyo.puyoY - puyo.puyoMoveY + puyo.puyoMoveY * puyo.frameY / puyo.frameMaxY + 1, n));
+            glVertex2d(calWinX(puyo.puyoX - puyo.puyoMoveX + puyo.puyoMoveX * puyo.frameX / puyo.frameMaxX + 1, n), calWinY(puyo.puyoY - puyo.puyoMoveY + puyo.puyoMoveY * puyo.frameY / puyo.frameMaxY, n));
+            glEnd();
+        }
+
 //
 //        glBegin(GL_QUADS);
 //        glColor4d(0, 1, 0, 1);
@@ -1200,14 +1228,28 @@ public class PrismGamePuyopuyo {
     }
 
     void drawPuyoSub(Puyopuyo puyo, Puyopuyo sub, double t, int n) {
-        glBegin(GL_QUADS);
-        changePuyoColor(sub.puyoColor);
-        glVertex2d(calWinX(puyo.puyoX - puyo.puyoMoveX + puyo.puyoMoveX * puyo.frameX / puyo.frameMaxX + Math.cos(t), n), calWinY(puyo.puyoY - puyo.puyoMoveY + puyo.puyoMoveY * puyo.frameY / puyo.frameMaxY + Math.sin(t), n));
-        glVertex2d(calWinX(puyo.puyoX - puyo.puyoMoveX + puyo.puyoMoveX * puyo.frameX / puyo.frameMaxX + Math.cos(t), n), calWinY(puyo.puyoY - puyo.puyoMoveY + puyo.puyoMoveY * puyo.frameY / puyo.frameMaxY + 1 + Math.sin(t), n));
-        glVertex2d(calWinX(puyo.puyoX - puyo.puyoMoveX + puyo.puyoMoveX * puyo.frameX / puyo.frameMaxX + 1 + Math.cos(t), n), calWinY(puyo.puyoY - puyo.puyoMoveY + puyo.puyoMoveY * puyo.frameY / puyo.frameMaxY + 1 + Math.sin(t), n));
-        glVertex2d(calWinX(puyo.puyoX - puyo.puyoMoveX + puyo.puyoMoveX * puyo.frameX / puyo.frameMaxX + 1 + Math.cos(t), n), calWinY(puyo.puyoY - puyo.puyoMoveY + puyo.puyoMoveY * puyo.frameY / puyo.frameMaxY + Math.sin(t), n));
-        glEnd();
 
+        boolean hasTexture=changePuyoColor(sub.puyoColor);
+        if(hasTexture) {
+            glBegin(GL_QUADS);
+            GL11.glTexCoord2f(0, 0);
+            glVertex2d(calWinX(puyo.puyoX - puyo.puyoMoveX + puyo.puyoMoveX * puyo.frameX / puyo.frameMaxX + Math.cos(t), n), calWinY(puyo.puyoY - puyo.puyoMoveY + puyo.puyoMoveY * puyo.frameY / puyo.frameMaxY + Math.sin(t), n));
+            GL11.glTexCoord2f(0, 1);
+            glVertex2d(calWinX(puyo.puyoX - puyo.puyoMoveX + puyo.puyoMoveX * puyo.frameX / puyo.frameMaxX + Math.cos(t), n), calWinY(puyo.puyoY - puyo.puyoMoveY + puyo.puyoMoveY * puyo.frameY / puyo.frameMaxY + 1 + Math.sin(t), n));
+            GL11.glTexCoord2f(1, 1);
+            glVertex2d(calWinX(puyo.puyoX - puyo.puyoMoveX + puyo.puyoMoveX * puyo.frameX / puyo.frameMaxX + 1 + Math.cos(t), n), calWinY(puyo.puyoY - puyo.puyoMoveY + puyo.puyoMoveY * puyo.frameY / puyo.frameMaxY + 1 + Math.sin(t), n));
+            GL11.glTexCoord2f(1, 0);
+            glVertex2d(calWinX(puyo.puyoX - puyo.puyoMoveX + puyo.puyoMoveX * puyo.frameX / puyo.frameMaxX + 1 + Math.cos(t), n), calWinY(puyo.puyoY - puyo.puyoMoveY + puyo.puyoMoveY * puyo.frameY / puyo.frameMaxY + Math.sin(t), n));
+            glEnd();
+            glDisable(GL_TEXTURE_2D);
+        }else {
+            glBegin(GL_QUADS);
+            glVertex2d(calWinX(puyo.puyoX - puyo.puyoMoveX + puyo.puyoMoveX * puyo.frameX / puyo.frameMaxX + Math.cos(t), n), calWinY(puyo.puyoY - puyo.puyoMoveY + puyo.puyoMoveY * puyo.frameY / puyo.frameMaxY + Math.sin(t), n));
+            glVertex2d(calWinX(puyo.puyoX - puyo.puyoMoveX + puyo.puyoMoveX * puyo.frameX / puyo.frameMaxX + Math.cos(t), n), calWinY(puyo.puyoY - puyo.puyoMoveY + puyo.puyoMoveY * puyo.frameY / puyo.frameMaxY + 1 + Math.sin(t), n));
+            glVertex2d(calWinX(puyo.puyoX - puyo.puyoMoveX + puyo.puyoMoveX * puyo.frameX / puyo.frameMaxX + 1 + Math.cos(t), n), calWinY(puyo.puyoY - puyo.puyoMoveY + puyo.puyoMoveY * puyo.frameY / puyo.frameMaxY + 1 + Math.sin(t), n));
+            glVertex2d(calWinX(puyo.puyoX - puyo.puyoMoveX + puyo.puyoMoveX * puyo.frameX / puyo.frameMaxX + 1 + Math.cos(t), n), calWinY(puyo.puyoY - puyo.puyoMoveY + puyo.puyoMoveY * puyo.frameY / puyo.frameMaxY + Math.sin(t), n));
+            glEnd();
+        }
     }
 
     void drawNexts(List<Integer> ns, int n) {
@@ -1226,14 +1268,27 @@ public class PrismGamePuyopuyo {
                     break;
             }
             if (ns.size() > y) {
-                glBegin(GL_QUADS);
-
-                changePuyoColor(ns.get(y));
-                glVertex2d(calWinX(x, n), calWinY(yy, n));
-                glVertex2d(calWinX(x, n), calWinY(yy + 1, n));
-                glVertex2d(calWinX(x + 1, n), calWinY(yy + 1, n));
-                glVertex2d(calWinX(x + 1, n), calWinY(yy, n));
-                glEnd();
+                boolean hasTexture=changePuyoColor(ns.get(y));
+                if(hasTexture){
+                    glBegin(GL_QUADS);
+                    GL11.glTexCoord2f(0, 0);
+                    glVertex2d(calWinX(x, n), calWinY(yy, n));
+                    GL11.glTexCoord2f(0, 1);
+                    glVertex2d(calWinX(x, n), calWinY(yy + 1, n));
+                    GL11.glTexCoord2f(1, 1);
+                    glVertex2d(calWinX(x + 1, n), calWinY(yy + 1, n));
+                    GL11.glTexCoord2f(1, 0);
+                    glVertex2d(calWinX(x + 1, n), calWinY(yy, n));
+                    glEnd();
+                    glDisable(GL_TEXTURE_2D);
+                }else {
+                    glBegin(GL_QUADS);
+                    glVertex2d(calWinX(x, n), calWinY(yy, n));
+                    glVertex2d(calWinX(x, n), calWinY(yy + 1, n));
+                    glVertex2d(calWinX(x + 1, n), calWinY(yy + 1, n));
+                    glVertex2d(calWinX(x + 1, n), calWinY(yy, n));
+                    glEnd();
+                }
             }
         }
 

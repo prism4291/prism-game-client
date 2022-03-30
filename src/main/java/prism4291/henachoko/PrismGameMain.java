@@ -7,6 +7,11 @@ import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -116,7 +121,9 @@ public class PrismGameMain {
     }
 
     void Main(boolean flag) {
-
+        if(fuse==0){
+            getPuyoTextures();
+        }
         fuse++;
         if (socketId == null) {
             return;
@@ -560,5 +567,49 @@ public class PrismGameMain {
                 KEY_BUTTON[i]++;
             }
         }
+    }
+    public static void getPuyoTextures(){
+
+
+        Path path = Paths.get("textures");
+        if(Files.exists(path)){
+            System.out.println("yes");
+        }else{
+            try {
+                Files.createDirectory(path);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        String file="/red.png";
+        for(int i=0;i<4;i++){
+            switch(i){
+                case 1:
+                    file="/green.png";
+                    break;
+                case 2:
+                    file="/blue.png";
+                    break;
+                case 3:
+                    file="/yellow.png";
+                    break;
+            }
+            path= Paths.get("textures"+file);
+            if(Files.exists(path)){
+                System.out.println("yes");
+            }else{
+                InputStream stream=PrismGameClient.class.getResourceAsStream(file);
+                try {
+                    Files.copy(stream,path);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            PrismGameVariable.MYPUYOTEXTURES.put(i,Texture.getTexture(path));
+
+        }
+
+
     }
 }
