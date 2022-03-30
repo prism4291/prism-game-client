@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static org.lwjgl.opengl.GL11.*;
 import static prism4291.henachoko.PrismGameVariable.*;
@@ -601,12 +602,12 @@ public class PrismGameMain {
             }else{
                 InputStream stream=PrismGameClient.class.getResourceAsStream(file);
                 try {
-                    Files.copy(stream,path);
+                    Files.copy(Objects.requireNonNull(stream),path);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
-            PrismGameVariable.MYPUYOTEXTURES.put(i,Texture.getTexture(path));
+            PrismGameVariable.MYPUYOTEXTURES.put(i,Texture.getTexture(path,i));
 
         }
 

@@ -72,6 +72,7 @@ public class PrismGamePuyopuyo {
     int erasingTime;
     boolean game_ended;
     int puyoBonusCash;
+    Map<Integer,Map<Integer,Texture>> puyoTextureData;
     PrismGamePuyopuyo() {
         status = "init";
         puyos = new ArrayList<>();
@@ -117,6 +118,22 @@ public class PrismGamePuyopuyo {
         opponentNexts = new HashMap<>();
         game_ended = false;
         puyoBonusCash=0;
+        puyoTextureData=new HashMap<>();
+        Map<Integer,Texture> map=new HashMap<>();
+        for(int n:PrismGameVariable.MYPUYOTEXTURES.keySet()) {
+            map.put(n,PrismGameVariable.MYPUYOTEXTURES.get(n));
+        }
+        puyoTextureData.put(0,map);
+        JSONObject msg = new JSONObject();
+        msg.put("from", PrismGameVariable.userName);
+        msg.put("type", "texture");
+        msg.put("time", System.currentTimeMillis());
+        JSONObject textures=new JSONObject();
+        for(int i:puyoTextureData.get(0).keySet()){
+            textures.put(String.valueOf(i),puyoTextureData.get(0).get(i).getB64s());
+        }
+        msg.put("texture",textures);
+        PrismGameVariable.socket.emit("clientRoomMessage", msg);
     }
 
     void createPuyo(int color1, int color2) {
@@ -1008,6 +1025,18 @@ public class PrismGamePuyopuyo {
         if (jo.getString("type").equals("init")) {
             startTime = jo.getLong("startTime");
             tumoData = jo.getString("tumoData");
+        }else if(jo.getString("type").equals("texture")){
+            System.out.println(jo);
+            String dataFrom = jo.getString("from");
+            if(!dataFrom.equals(PrismGameVariable.userName)) {
+                JSONObject obj = jo.getJSONObject("texture");
+                for (String i : obj.keySet()) {
+                    int n = Integer.parseInt(i);
+                    puyoTextureData.computeIfAbsent(1, k -> new HashMap<>());
+                    puyoTextureData.get(1).put(n, Texture.b64ToTexture(obj.getString(i)));
+                }
+            }
+            System.out.println(puyoTextureData);
         } else if (jo.getString("type").equals("loop")) {
             String dataFrom = jo.getString("from");
 
@@ -1067,7 +1096,7 @@ public class PrismGamePuyopuyo {
     }
 
     void draw() {
-
+        glDisable(GL_TEXTURE_2D);
         glBegin(GL_TRIANGLE_FAN);
         glColor4d(1, 1, 1, 1);
         glVertex2d(-1, -1);
@@ -1140,13 +1169,15 @@ public class PrismGamePuyopuyo {
 
     }
 
-    boolean changePuyoColor(int c) {
+    boolean changePuyoColor(int c,int n) {
+        String dataFrom="";
+
         boolean hasTexture=false;
-        if(PrismGameVariable.MYPUYOTEXTURES.get(c)!=null){
+        if(puyoTextureData.get(n).get(c)!=null){
             hasTexture=true;
             glColor4d(1,1,1,1);
             glEnable(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D,PrismGameVariable.MYPUYOTEXTURES.get(c).getId());
+            glBindTexture(GL_TEXTURE_2D,puyoTextureData.get(n).get(c).getId());
         }else {
             switch (c) {
                 case 0:
@@ -1194,7 +1225,7 @@ public class PrismGamePuyopuyo {
 
     void drawPuyo(Puyopuyo puyo, int n) {
 
-        boolean hasTexture= changePuyoColor(puyo.puyoColor);
+        boolean hasTexture= changePuyoColor(puyo.puyoColor,n);
         if(hasTexture){
             glBegin(GL_QUADS);
             GL11.glTexCoord2f(0, 0);
@@ -1229,7 +1260,7 @@ public class PrismGamePuyopuyo {
 
     void drawPuyoSub(Puyopuyo puyo, Puyopuyo sub, double t, int n) {
 
-        boolean hasTexture=changePuyoColor(sub.puyoColor);
+        boolean hasTexture=changePuyoColor(sub.puyoColor,n);
         if(hasTexture) {
             glBegin(GL_QUADS);
             GL11.glTexCoord2f(0, 0);
@@ -1268,7 +1299,7 @@ public class PrismGamePuyopuyo {
                     break;
             }
             if (ns.size() > y) {
-                boolean hasTexture=changePuyoColor(ns.get(y));
+                boolean hasTexture=changePuyoColor(ns.get(y),n);
                 if(hasTexture){
                     glBegin(GL_QUADS);
                     GL11.glTexCoord2f(0, 0);
@@ -1298,7 +1329,7 @@ public class PrismGamePuyopuyo {
         int y = 1;
         for (int x = 0; x < yokoku.size(); x++) {
             glBegin(GL_QUADS);
-            changePuyoColor(yokoku.get(x));
+            changePuyoColor(yokoku.get(x),n);
             glVertex2d(calWinX(x, n), calWinY(y, n));
             glVertex2d(calWinX(x, n), calWinY(y + 1, n));
             glVertex2d(calWinX(x + 1, n), calWinY(y + 1, n));

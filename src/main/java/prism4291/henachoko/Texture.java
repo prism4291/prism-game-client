@@ -5,6 +5,7 @@ import org.lwjgl.BufferUtils;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
@@ -12,11 +13,13 @@ import java.nio.file.Path;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
-
+import java.util.Base64;
+import java.util.Objects;
 
 public class Texture{
 
     private final int id;
+    private String b64s;
 
     public Texture(int id){
         this.id = id;
@@ -25,7 +28,37 @@ public class Texture{
     public int getId(){
         return id;
     }
+
+    public String getB64s(){
+        return b64s;
+    }
+    public static Texture getTexture(Path path,int n){
+        Texture t=getTexture(path);
+        try {
+            byte[] bytes=Files.readAllBytes(path);
+            Objects.requireNonNull(t).b64s=Base64.getEncoder().encodeToString(bytes);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+return t;
+
+    }
+    public static Texture b64ToTexture(String str){
+        byte[] b=Base64.getDecoder().decode(str);
+        PNGDecoder decoder;
+        try {
+            decoder = new PNGDecoder(new ByteArrayInputStream(b));
+            return decodeTexture(decoder);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static Texture getTexture(Path path){
+
+
         PNGDecoder decoder;
             try {
                 decoder = new PNGDecoder(Files.newInputStream(path));
@@ -70,6 +103,8 @@ public class Texture{
 
         // Generate Mip Map
         glGenerateMipmap(GL_TEXTURE_2D);
+
+
 
         return new Texture(id);
     }
