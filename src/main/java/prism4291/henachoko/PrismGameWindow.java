@@ -25,7 +25,7 @@ public class PrismGameWindow {
         while (!GLFW.glfwWindowShouldClose(PrismGameVariable.WIN)) {
             currentTime = System.currentTimeMillis();
             if (currentTime >= FPSFrom + (secondFromStart + 1) * 1000) {
-                System.out.println("FPS : "+PrismGameVariable.CURRENT_FPS);
+                System.out.println("FPS : " + PrismGameVariable.CURRENT_FPS);
                 PrismGameVariable.CURRENT_FPS = 0;
                 secondFromStart++;
                 //System.out.println(Arrays.toString(Variable.MOUSE_BUTTON));
@@ -38,7 +38,7 @@ public class PrismGameWindow {
                     GLFW.glfwSwapBuffers(PrismGameVariable.WIN);
                     GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
                     PrismGameVariable.CURRENT_FPS++;
-                }else{
+                } else {
                     mm.Main(false);
                 }
             }
@@ -82,10 +82,14 @@ public class PrismGameWindow {
             PrismGameVariable.CURRENT_HEIGHT = hh;
         });
         GLFW.glfwSetMouseButtonCallback(WIN, (win, button, action, mods) -> {
-            if(button>=0) {
+            if (button >= 0) {
                 switch (action) {
-                    case GLFW.GLFW_PRESS : PrismGameVariable.MOUSE_BUTTON[button] = 1;break;
-                    case GLFW.GLFW_RELEASE : PrismGameVariable.MOUSE_BUTTON[button] = -PrismGameVariable.MOUSE_BUTTON[button];break;
+                    case GLFW.GLFW_PRESS:
+                        PrismGameVariable.MOUSE_BUTTON[button] = 1;
+                        break;
+                    case GLFW.GLFW_RELEASE:
+                        PrismGameVariable.MOUSE_BUTTON[button] = -PrismGameVariable.MOUSE_BUTTON[button];
+                        break;
                 }
             }
             //System.out.println(Variable.MOUSE_BUTTON[button]);
@@ -98,10 +102,14 @@ public class PrismGameWindow {
             @Override
             public void invoke(long win, int key, int code, int action, int mods) {
                 //System.out.println(action);
-                if(key>=0) {
+                if (key >= 0) {
                     switch (action) {
-                        case GLFW.GLFW_PRESS : PrismGameVariable.KEY_BUTTON[key] = 1;break;
-                        case GLFW.GLFW_RELEASE : PrismGameVariable.KEY_BUTTON[key] = -PrismGameVariable.KEY_BUTTON[key];break;
+                        case GLFW.GLFW_PRESS:
+                            PrismGameVariable.KEY_BUTTON[key] = 1;
+                            break;
+                        case GLFW.GLFW_RELEASE:
+                            PrismGameVariable.KEY_BUTTON[key] = -PrismGameVariable.KEY_BUTTON[key];
+                            break;
                     }
                 }
             }

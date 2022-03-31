@@ -6,9 +6,7 @@ import org.json.JSONObject;
 import org.lwjgl.glfw.GLFW;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,7 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class PrismGameClient {
-    static final int clientVersion = 2;
+    static final int clientVersion = 3;
     static String keyName = "username";
     static String keyPassWord = "password";
 
@@ -27,7 +25,7 @@ public class PrismGameClient {
 
 
         JSONObject userData = getUserData();
-        System.out.println(userData);
+        //System.out.println(userData);
         if (userData == null) {
             return;
         }
@@ -36,7 +34,7 @@ public class PrismGameClient {
 
         PrismGameVariable.socket.on("serverVerifyLogin", objects -> {
             JSONObject jo = (JSONObject) objects[0];
-            System.out.println(jo);
+            //System.out.println(jo);
             switch (jo.getString("status")) {
                 case "new":
                 case "match":
@@ -59,7 +57,6 @@ public class PrismGameClient {
         PrismGameVariable.socket.off();
         PrismGameVariable.socket.disconnect();
         PrismGameVariable.socket.close();
-
 
 
     }

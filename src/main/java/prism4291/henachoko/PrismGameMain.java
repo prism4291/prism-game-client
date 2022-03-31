@@ -32,13 +32,14 @@ public class PrismGameMain {
     JSONObject currentRoom;
     List<Integer> roomMemberImage;
     boolean memberUpdated;
-    static final int pWidth=6;
-    static final int pHeight=14;
+    static final int pWidth = 6;
+    static final int pHeight = 14;
     List<List<Integer>> board;
     String mode;
     boolean puyoMoving;
     int playSequence;//0:move 1:kesu
     PrismGamePuyopuyo prismGamePuyopuyo;
+
     PrismGameMain() {
         fuse = 0;
         //
@@ -50,19 +51,19 @@ public class PrismGameMain {
         menuSelect = 0;
         roomJoined = false;
         gameStarting = false;
-        board=new ArrayList<>();
-        for(int i=0;i<pHeight;i++){
+        board = new ArrayList<>();
+        for (int i = 0; i < pHeight; i++) {
             board.add(new ArrayList<>());
-            for(int j=0;j<pWidth;j++){
+            for (int j = 0; j < pWidth; j++) {
                 board.get(i).add(0);
             }
         }
-        puyoMoving=false;
-        mode="start";
-        playSequence=0;
+        puyoMoving = false;
+        mode = "start";
+        playSequence = 0;
         PrismGameVariable.socket.on("serverStartGame", objects -> {
             JSONObject jo = (JSONObject) objects[0];
-            System.out.println("serverStartGame  "+jo);
+            //System.out.println("serverStartGame  "+jo);
             if (jo.getString("status").equals("start")) {
                 gameStarting = true;
             }
@@ -71,33 +72,33 @@ public class PrismGameMain {
             //System.out.println(objects);
             //JSONObject jo = (JSONObject) objects[0];
             //System.out.println("serverReStartGame  "+jo);
-            gameStarting=false;
+            gameStarting = false;
         });
-        currentRoom=null;
+        currentRoom = null;
         PrismGameVariable.socket.on("serverJoinMember", objects -> {
             JSONObject jo = (JSONObject) objects[0];
             //System.out.println(jo);
-            currentRoom=jo.getJSONObject("room");
-            memberUpdated=true;
+            currentRoom = jo.getJSONObject("room");
+            memberUpdated = true;
         });
         roomList = null;
         myRoomImage = -1;
         myRoomName = null;
-        roomMemberImage=new ArrayList<>();
-        memberUpdated=false;
+        roomMemberImage = new ArrayList<>();
+        memberUpdated = false;
         PrismGameVariable.socket.on("serverCreateRoomRes", objects -> {
             JSONObject jo = (JSONObject) objects[0];
             //System.out.println(jo);
             myRoomName = jo.getString("name");
             roomJoined = true;
-            currentRoom=jo.getJSONObject("room");
-            memberUpdated=true;
+            currentRoom = jo.getJSONObject("room");
+            memberUpdated = true;
         });
         PrismGameVariable.socket.on("serverGetRoomRes", objects -> {
             JSONObject jo = (JSONObject) objects[0];
             //System.out.println(jo);
             roomList = jo.getJSONArray("rooms");
-            roomTexts=null;
+            roomTexts = null;
 
         });
         PrismGameVariable.socket.on("serverJoinRoomRes", objects -> {
@@ -106,8 +107,8 @@ public class PrismGameMain {
             if (jo.getString("status").equals("success")) {
                 roomJoined = true;
                 myRoomName = jo.getJSONObject("room").getString("name");
-                currentRoom=jo.getJSONObject("room");
-                memberUpdated=true;
+                currentRoom = jo.getJSONObject("room");
+                memberUpdated = true;
             }
 
         });
@@ -115,14 +116,14 @@ public class PrismGameMain {
             JSONObject jo = (JSONObject) objects[0];
             //if(!jo.getString("from").equals(socketId)) {
             //    System.out.println(jo.getString("from"));
-                //prismGamePuyopuyo.updateData(jo);
+            //prismGamePuyopuyo.updateData(jo);
             //}
             PrismGameVariable.PLAYERDATA.put(jo);
         });
     }
 
     void Main(boolean flag) {
-        if(fuse==0){
+        if (fuse == 0) {
             getPuyoTextures();
         }
         fuse++;
@@ -148,21 +149,21 @@ public class PrismGameMain {
             if (res == 2) {
                 seq = 3;
 
-                menuSelect=0;
+                menuSelect = 0;
                 PrismGameVariable.socket.emit("clientGetRoom");
             }
         } else if (seq == 2) {
             int res = showHost();
-            if(res==1){
+            if (res == 1) {
 
-                PrismGameVariable.socket.emit("clientStartGame",currentRoom.toString());
+                PrismGameVariable.socket.emit("clientStartGame", currentRoom.toString());
             }
             if (gameStarting) {
                 seq = 5;
-                isHost=true;
+                isHost = true;
             }
         } else if (seq == 3) {
-            if(fuse%300==0){
+            if (fuse % 300 == 0) {
                 PrismGameVariable.socket.emit("clientGetRoom");
 
             }
@@ -179,15 +180,15 @@ public class PrismGameMain {
                 }
             }
 
-        }else if(seq==4){
+        } else if (seq == 4) {
             showJoinedRoom();
             if (gameStarting) {
                 seq = 5;
-                isHost=false;
+                isHost = false;
 
             }
         } else if (seq == 5) {
-            if(gameStarting) {
+            if (gameStarting) {
                 if (prismGamePuyopuyo == null) {
                     prismGamePuyopuyo = new PrismGamePuyopuyo();
                 }
@@ -200,9 +201,9 @@ public class PrismGameMain {
                     JSONObject msg = new JSONObject();
                     PrismGameVariable.socket.emit("clientReStartGame", msg.toString());
                 }
-            }else{
-                prismGamePuyopuyo=new PrismGamePuyopuyo();
-                gameStarting=true;
+            } else {
+                prismGamePuyopuyo = new PrismGamePuyopuyo();
+                gameStarting = true;
             }
 
         }
@@ -212,33 +213,33 @@ public class PrismGameMain {
 
     int MainGame(boolean flag) {
 
-        int res=prismGamePuyopuyo.PuyoLoop();
-        if(res==1&&isHost&&KEY_BUTTON[GLFW.GLFW_KEY_ENTER] == 1){
+        int res = prismGamePuyopuyo.PuyoLoop();
+        if (res == 1 && isHost && KEY_BUTTON[GLFW.GLFW_KEY_ENTER] == 1) {
             return 1;
         }
-        if(flag) {
+        if (flag) {
             prismGamePuyopuyo.draw();
         }
-        if(fuse%20==0) {
+        if (fuse % 20 == 0) {
             prismGamePuyopuyo.PuyoSend();
         }
         //System.out.println(PLAYERDATA);
 
-        JSONArray tmpDATA=new JSONArray(PLAYERDATA.toString());
-        for(int i=0;i<tmpDATA.length();i++){
+        JSONArray tmpDATA = new JSONArray(PLAYERDATA.toString());
+        for (int i = 0; i < tmpDATA.length(); i++) {
             PLAYERDATA.remove(0);
         }
-        long[] times= new long[tmpDATA.length()];
-        for(int n=0;n<tmpDATA.length();n++){
+        long[] times = new long[tmpDATA.length()];
+        for (int n = 0; n < tmpDATA.length(); n++) {
             try {
                 times[n] = tmpDATA.getJSONObject(n).getLong("time");
-            }catch (JSONException e){
-                times[n]=-1;
+            } catch (JSONException e) {
+                times[n] = -1;
             }
         }
-        for(int m=0;m<tmpDATA.length();m++){
-            for(int n=0;n<tmpDATA.length()-1;n++){
-                if(times[n]>=0&&times[n+1]>=0) {
+        for (int m = 0; m < tmpDATA.length(); m++) {
+            for (int n = 0; n < tmpDATA.length() - 1; n++) {
+                if (times[n] >= 0 && times[n + 1] >= 0) {
                     if (times[n] > times[n + 1]) {
                         long t = times[n];
                         times[n] = times[n + 1];
@@ -250,8 +251,8 @@ public class PrismGameMain {
                 }
             }
         }
-        for(int n=0;n<tmpDATA.length();n++){
-            if(times[n]>=0) {
+        for (int n = 0; n < tmpDATA.length(); n++) {
+            if (times[n] >= 0) {
                 JSONObject jo = tmpDATA.getJSONObject(n);
                 prismGamePuyopuyo.updateData(jo);
             }
@@ -261,19 +262,19 @@ public class PrismGameMain {
     }
 
 
-
-    void updateMember(){
-        for(int n:roomMemberImage){
+    void updateMember() {
+        for (int n : roomMemberImage) {
             glDeleteTextures(n);
         }
-        roomMemberImage=new ArrayList<>();
+        roomMemberImage = new ArrayList<>();
         roomMemberImage.add(Texture.drawStrImage(currentRoom.getString("host")).getId());
-        for(Object str:currentRoom.getJSONArray("guest")){
+        for (Object str : currentRoom.getJSONArray("guest")) {
             //System.out.println(str);
             roomMemberImage.add(Texture.drawStrImage((String) str).getId());
         }
-        memberUpdated=false;
+        memberUpdated = false;
     }
+
     int showTitle() {
         glBegin(GL_TRIANGLE_FAN);
         glColor4d(1, 1, 1, 1);
@@ -319,7 +320,7 @@ public class PrismGameMain {
                 glVertex2d(-0.1, 1);
                 glVertex2d(-0.1, -1);
                 glEnd();
-            break;
+                break;
             case 1:
                 glBegin(GL_TRIANGLE_FAN);
                 glVertex2d(0.1, -1);
@@ -327,7 +328,7 @@ public class PrismGameMain {
                 glVertex2d(0.8, 1);
                 glVertex2d(0.8, -1);
                 glEnd();
-           break;
+                break;
         }
         glColor4d(1, 1, 1, 1);
         glBindTexture(GL_TEXTURE_2D, images.get("host").getId());
@@ -373,7 +374,7 @@ public class PrismGameMain {
     }
 
     int showHost() {
-        if(memberUpdated){
+        if (memberUpdated) {
             updateMember();
         }
         glBegin(GL_TRIANGLE_FAN);
@@ -421,7 +422,7 @@ public class PrismGameMain {
             y -= 0.1;
         }
         if (KEY_BUTTON[GLFW.GLFW_KEY_ENTER] == 1) {
-            if(currentRoom!=null) {
+            if (currentRoom != null) {
                 if (currentRoom.getJSONArray("guest").length() >= 1) {
                     return 1;
                 }
@@ -480,10 +481,10 @@ public class PrismGameMain {
                 GL11.glEnd();
                 y -= 0.1;
             }
-            y=0.9-0.1*menuSelect;
-            GL11.glColor4d(1,0,0,Math.abs(Math.sin(fuse*0.04)));
+            y = 0.9 - 0.1 * menuSelect;
+            GL11.glColor4d(1, 0, 0, Math.abs(Math.sin(fuse * 0.04)));
             GL11.glBegin(GL_TRIANGLE_FAN);
-            GL11.glVertex2d(-0.64, y-0.02);
+            GL11.glVertex2d(-0.64, y - 0.02);
             GL11.glVertex2d(-0.64, y - 0.08);
             GL11.glVertex2d(-0.61, y - 0.05);
             GL11.glEnd();
@@ -494,7 +495,7 @@ public class PrismGameMain {
                 menuSelect++;
             }
             if (menuSelect < 0) {
-                menuSelect = roomList.length()-1;
+                menuSelect = roomList.length() - 1;
             }
             if (menuSelect >= roomList.length()) {
                 menuSelect = 0;
@@ -505,8 +506,9 @@ public class PrismGameMain {
         }
         return 0;
     }
+
     void showJoinedRoom() {
-        if(memberUpdated){
+        if (memberUpdated) {
             updateMember();
         }
         glBegin(GL_TRIANGLE_FAN);
@@ -553,6 +555,7 @@ public class PrismGameMain {
             }
         }
     }
+
     void myActionMain() {
         for (int i = 0; i < MOUSE_BUTTON.length; i++) {
             if (MOUSE_BUTTON[i] <= 0) {
@@ -569,13 +572,13 @@ public class PrismGameMain {
             }
         }
     }
-    public static void getPuyoTextures(){
+
+    public static void getPuyoTextures() {
 
 
         Path path = Paths.get("textures");
-        if(Files.exists(path)){
-            System.out.println("yes");
-        }else{
+        if (!Files.exists(path)) {
+
             try {
                 Files.createDirectory(path);
             } catch (IOException e) {
@@ -583,31 +586,59 @@ public class PrismGameMain {
             }
         }
 
-        String file="/red.png";
-        for(int i=0;i<4;i++){
-            switch(i){
+        String file;
+        for (int i = 0; i < 16; i++) {
+            switch (i) {
+                case 0:
+                    file = "/red.png";
+                    break;
                 case 1:
-                    file="/green.png";
+                    file = "/green.png";
                     break;
                 case 2:
-                    file="/blue.png";
+                    file = "/blue.png";
                     break;
                 case 3:
-                    file="/yellow.png";
+                    file = "/yellow.png";
                     break;
+                case 5:
+                    file = "/ojama.png";
+                    break;
+                case 9:
+                    file = "/ojamaSmall.png";
+                    break;
+                case 10:
+                    file = "/ojamaBig.png";
+                    break;
+                case 11:
+                    file = "/ojamaRock.png";
+                    break;
+                case 12:
+                    file = "/ojamaStar.png";
+                    break;
+                case 13:
+                    file = "/ojamaMoon.png";
+                    break;
+                case 14:
+                    file = "/ojamaCrown.png";
+                    break;
+                case 15:
+                    file = "/ojamaComet.png";
+                    break;
+                default:
+                    continue;
             }
-            path= Paths.get("textures"+file);
-            if(Files.exists(path)){
-                System.out.println("yes");
-            }else{
-                InputStream stream=PrismGameClient.class.getResourceAsStream(file);
+            path = Paths.get("textures" + file);
+            if (!Files.exists(path)) {
+
+                InputStream stream = PrismGameClient.class.getResourceAsStream(file);
                 try {
-                    Files.copy(Objects.requireNonNull(stream),path);
+                    Files.copy(Objects.requireNonNull(stream), path);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
-            PrismGameVariable.MYPUYOTEXTURES.put(i,Texture.getTexture(path,i));
+            PrismGameVariable.MYPUYOTEXTURES.put(i, Texture.getTexture2(path));
 
         }
 

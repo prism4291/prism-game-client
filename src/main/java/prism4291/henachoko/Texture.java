@@ -13,39 +13,42 @@ import java.nio.file.Path;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
+
 import java.util.Base64;
 import java.util.Objects;
 
-public class Texture{
+public class Texture {
 
     private final int id;
     private String b64s;
 
-    public Texture(int id){
+    public Texture(int id) {
         this.id = id;
     }
 
-    public int getId(){
+    public int getId() {
         return id;
     }
 
-    public String getB64s(){
+    public String getB64s() {
         return b64s;
     }
-    public static Texture getTexture(Path path,int n){
-        Texture t=getTexture(path);
+
+    public static Texture getTexture2(Path path) {
+        Texture t = getTexture(path);
         try {
-            byte[] bytes=Files.readAllBytes(path);
-            Objects.requireNonNull(t).b64s=Base64.getEncoder().encodeToString(bytes);
+            byte[] bytes = Files.readAllBytes(path);
+            Objects.requireNonNull(t).b64s = Base64.getEncoder().encodeToString(bytes);
 
         } catch (IOException e) {
             e.printStackTrace();
         }
-return t;
+        return t;
 
     }
-    public static Texture b64ToTexture(String str){
-        byte[] b=Base64.getDecoder().decode(str);
+
+    public static Texture b64ToTexture(String str) {
+        byte[] b = Base64.getDecoder().decode(str);
         PNGDecoder decoder;
         try {
             decoder = new PNGDecoder(new ByteArrayInputStream(b));
@@ -56,19 +59,20 @@ return t;
         return null;
     }
 
-    public static Texture getTexture(Path path){
+    public static Texture getTexture(Path path) {
 
 
         PNGDecoder decoder;
-            try {
-                decoder = new PNGDecoder(Files.newInputStream(path));
-                return decodeTexture(decoder);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
+        try {
+            decoder = new PNGDecoder(Files.newInputStream(path));
+            return decodeTexture(decoder);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
-    public static Texture decodeTexture(PNGDecoder decoder){
+
+    public static Texture decodeTexture(PNGDecoder decoder) {
 
 
         //create a byte buffer big enough to store RGBA values
@@ -105,11 +109,10 @@ return t;
         glGenerateMipmap(GL_TEXTURE_2D);
 
 
-
         return new Texture(id);
     }
 
-    public static Texture loadTexture(String fileName){
+    public static Texture loadTexture(String fileName) {
 
         //load png file
         PNGDecoder decoder;
@@ -122,9 +125,10 @@ return t;
         }
         return null;
     }
-    public static Texture drawStrImage(String text){
-        int w=text.length()*16;
-        int h=16;
+
+    public static Texture drawStrImage(String text) {
+        int w = text.length() * 16;
+        int h = 16;
 
         BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_3BYTE_BGR);
         Graphics g = img.getGraphics();
