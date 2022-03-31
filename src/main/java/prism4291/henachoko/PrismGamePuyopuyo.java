@@ -1036,7 +1036,7 @@ public class PrismGamePuyopuyo {
                     puyoTextureData.get(1).put(n, Texture.b64ToTexture(obj.getString(i)));
                 }
             }
-            System.out.println(puyoTextureData);
+            //System.out.println(puyoTextureData);
         } else if (jo.getString("type").equals("loop")) {
             String dataFrom = jo.getString("from");
 
@@ -1173,12 +1173,7 @@ public class PrismGamePuyopuyo {
         String dataFrom="";
 
         boolean hasTexture=false;
-        if(puyoTextureData.get(n).get(c)!=null){
-            hasTexture=true;
-            glColor4d(1,1,1,1);
-            glEnable(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D,puyoTextureData.get(n).get(c).getId());
-        }else {
+
             switch (c) {
                 case 0:
 
@@ -1219,7 +1214,17 @@ public class PrismGamePuyopuyo {
                     glColor4d(0.3, 0.3, 0.5, 1);
                     break;
             }
-        }
+            if(puyoTextureData!=null) {
+                if(puyoTextureData.get(n)!=null) {
+                    if (puyoTextureData.get(n).get(c) != null) {
+                        hasTexture = true;
+                        glColor4d(1, 1, 1, 1);
+                        glEnable(GL_TEXTURE_2D);
+                        glBindTexture(GL_TEXTURE_2D, puyoTextureData.get(n).get(c).getId());
+                    }
+                }
+            }
+
         return hasTexture;
     }
 
