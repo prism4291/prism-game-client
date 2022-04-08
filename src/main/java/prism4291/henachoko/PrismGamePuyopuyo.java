@@ -75,7 +75,8 @@ public class PrismGamePuyopuyo {
     Map<Integer, Map<Integer, Texture>> puyoTextureData;
     int ojamaX;
     static int[] ojamaXs = new int[]{0, 3, 2, 5, 1, 4};
-
+    boolean shouldUpdatePuyos;
+    List<Long> delays;
     PrismGamePuyopuyo() {
         status = "init";
         puyos = new ArrayList<>();
@@ -122,6 +123,8 @@ public class PrismGamePuyopuyo {
         game_ended = false;
         puyoBonusCash = 0;
         puyoTextureData = new HashMap<>();
+        shouldUpdatePuyos=true;
+        delays=new ArrayList<>();
         Map<Integer, Texture> map = new HashMap<>();
         for (int n : PrismGameVariable.MYPUYOTEXTURES.keySet()) {
             map.put(n, PrismGameVariable.MYPUYOTEXTURES.get(n));
@@ -483,6 +486,7 @@ public class PrismGamePuyopuyo {
                 ojamaFlag = true;
                 puyoBonusCash = 0;
                 ojamaX = 0;
+                shouldUpdatePuyos=true;
                 break;
             case "summon":
                 timenext++;
@@ -492,6 +496,7 @@ public class PrismGamePuyopuyo {
                     beforeRotate = -1;
                 }
                 if (timenext >= 30) {
+                    shouldUpdatePuyos=true;
                     if (backPuyos.get(calPuyoMap(2, 2)) != null) {
                         game_ended = true;
                         status = "end";
@@ -559,6 +564,7 @@ public class PrismGamePuyopuyo {
                 currentPuyoSub = null;
                 status = "fall";
                 rensaSuu = 0;
+                shouldUpdatePuyos=true;
                 break;
             case "fall":
                 if (maxFallTime < 0) {
@@ -585,7 +591,7 @@ public class PrismGamePuyopuyo {
                     status = "kesu";
                     kesuCheckY = 2;
                     maxFallTime = -1;
-
+                    shouldUpdatePuyos=true;
                 } else {
                     maxFallTime -= 1;
                     for (Puyopuyo puyo : puyos) {
@@ -642,6 +648,7 @@ public class PrismGamePuyopuyo {
                             }
                         }
                     }
+                    shouldUpdatePuyos=true;
                     if (kesuFlag) {
                         rensaSuu += 1;
                         for (int i = 1; i < rensaSuu; i++) {
@@ -1007,14 +1014,16 @@ public class PrismGamePuyopuyo {
 
     }
 
-    JSONObject getData() {
+    JSONObject getData(boolean flag) {
         JSONObject jo = new JSONObject();
         //jo.put("puyo",puyos);
         JSONArray puyoArray = new JSONArray();
-        for (Puyopuyo puyopuyo : puyos) {
-            puyoArray.put(puyopuyo.toJson());
+        if(flag) {
+            for (Puyopuyo puyopuyo : puyos) {
+                puyoArray.put(puyopuyo.toJson());
+            }
+            jo.put("puyos", puyoArray);
         }
-        jo.put("puyos", puyoArray);
         if (currentPuyo != null) {
             jo.put("currentPuyo", currentPuyo.toJson());
             if (currentPuyoSub != null) {
@@ -1035,8 +1044,12 @@ public class PrismGamePuyopuyo {
         if (!status.equals("init") && !status.equals("ready")) {
             JSONObject msg = new JSONObject();
             msg.put("from", PrismGameVariable.userName);
-            msg.put("type", "loop");
-            msg.put("data", getData());
+            if(shouldUpdatePuyos) {
+                msg.put("type", "loop");
+            }else{
+                msg.put("type","loopsub");
+            }
+            msg.put("data", getData(shouldUpdatePuyos));
             msg.put("time", System.currentTimeMillis());
             PrismGameVariable.socket.emit("clientRoomMessage", msg);
             //System.out.println("send "+msg);
@@ -1045,6 +1058,13 @@ public class PrismGamePuyopuyo {
 
     void updateData(JSONObject jo) {
         //System.out.println("got "+jo);
+        if(jo.has("time")){
+            delays.add(System.currentTimeMillis()-jo.getLong("time"));
+            //System.out.println("delay : "+(System.currentTimeMillis()-jo.getLong("time")));
+            if(delays.size()>10){
+                delays.remove(0);
+            }
+        }
         if (jo.getString("type").equals("init")) {
             startTime = jo.getLong("startTime");
             tumoData = jo.getString("tumoData");
@@ -1060,15 +1080,15 @@ public class PrismGamePuyopuyo {
                 }
             }
             //System.out.println(puyoTextureData);
-        } else if (jo.getString("type").equals("loop")) {
+        } else if (jo.getString("type").equals("loop")||jo.getString("type").equals("loopsub")) {
             String dataFrom = jo.getString("from");
-
-
-            opponentPuyos.put(dataFrom, new ArrayList<>());
             JSONObject data = jo.getJSONObject("data");
-            for (Object obj : data.getJSONArray("puyos")) {
-                Puyopuyo puyo = new Puyopuyo((JSONObject) obj);
-                opponentPuyos.get(dataFrom).add(puyo);
+            if(jo.getString("type").equals("loop")) {
+                opponentPuyos.put(dataFrom, new ArrayList<>());
+                for (Object obj : data.getJSONArray("puyos")) {
+                    Puyopuyo puyo = new Puyopuyo((JSONObject) obj);
+                    opponentPuyos.get(dataFrom).add(puyo);
+                }
             }
             opponentCurrentPuyo.remove(dataFrom);
             opponentCurrentPuyoSub.remove(dataFrom);
@@ -1193,7 +1213,7 @@ public class PrismGamePuyopuyo {
             }
             drawNexts(opponentNexts.get(opponent), 1);
         }
-
+        drawDelay();
     }
 
     boolean changePuyoColor(int c, int n) {
@@ -1384,7 +1404,30 @@ public class PrismGamePuyopuyo {
         }
 
     }
+    void drawDelay(){
+        long n=0;
+        for(long d:delays){
+            n+=d;
+        }
+        n/=10;
 
+        glBegin(GL_QUADS);
+        glColor4d(0,1,0,1);
+        long y;
+        for(long i=0;i<n/100.0;i++){
+            if(n-i*100<=100){
+                y=n-i*100;
+            }else{
+                y=100;
+            }
+            glVertex2d(-0.05,-0.8+i/10.0);
+            glVertex2d(0.05,-0.8+i/10.0);
+            glVertex2d(0.05,-0.8+i/10.0+y/1200.0);
+            glVertex2d(-0.05,-0.8+i/10.0+y/1200.0);
+        }
+
+        glEnd();
+    }
     double calWinX(double x, int n) {
         return -1 + x * 9.0 / 120 + 0.2 + n * 1.2;
     }

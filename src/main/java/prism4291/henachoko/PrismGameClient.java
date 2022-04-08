@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class PrismGameClient {
-    static final int clientVersion = 3;
+    static final int clientVersion = 4;
     static String keyName = "username";
     static String keyPassWord = "password";
 
