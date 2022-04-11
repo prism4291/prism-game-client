@@ -28,7 +28,7 @@ public class PrismGamePuyopuyo {
     static int puyoMaxY = 14;
     static int puyoMaxX = 6;
     static int delayMax = 50;
-    static int ojamaRate = 70;
+    static int ojamaRate = 180;
     static int maxOjama = 30;
     static int maxErasingTime = 40;
     int muki;
@@ -459,7 +459,7 @@ public class PrismGamePuyopuyo {
                         stringBuilder.append(random.nextInt(4));
                     }
                     tumoData = stringBuilder.toString();
-                    startTime = System.currentTimeMillis() + 5000;
+                    startTime = System.currentTimeMillis() + 3000;
                     JSONObject msg = new JSONObject();
                     msg.put("from", PrismGameVariable.userName);
                     msg.put("type", "init");
@@ -469,15 +469,16 @@ public class PrismGamePuyopuyo {
                     PrismGameVariable.socket.emit("clientRoomMessage", msg);
                     status = "ready";
                     tumoIndex = 0;
-                } else if (startTime >= 0) {
-                    //System.out.println("guest ready");
+                    System.out.println("host ready");
+                } else if (startTime > 0) {
+                    System.out.println("guest ready");
                     status = "ready";
                 }
                 break;
             case "ready":
                 if (System.currentTimeMillis() >= startTime) {
                     status = "go";
-                    //System.out.println("go");
+                    System.out.println("go");
                 }
                 break;
             case "go":
@@ -495,7 +496,7 @@ public class PrismGamePuyopuyo {
                 } else if (PrismGameVariable.KEY_BUTTON[key_rotate_left] == 1) {
                     beforeRotate = -1;
                 }
-                if (timenext >= 30) {
+                if (timenext >= 10) {
                     shouldUpdatePuyos=true;
                     if (backPuyos.get(calPuyoMap(2, 2)) != null) {
                         game_ended = true;
@@ -1067,6 +1068,7 @@ public class PrismGamePuyopuyo {
         }
         if (jo.getString("type").equals("init")) {
             startTime = jo.getLong("startTime");
+            System.out.println(startTime);
             tumoData = jo.getString("tumoData");
         } else if (jo.getString("type").equals("texture")) {
             //System.out.println(jo);
