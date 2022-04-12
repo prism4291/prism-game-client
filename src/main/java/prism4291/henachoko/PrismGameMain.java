@@ -133,6 +133,9 @@ public class PrismGameMain {
         if (!socketId.equals(socket.id())) {
             return;
         }
+        if(fuse%100==0&&fuse>0&&fuse<=1000){
+            PrismGameVariable.socket.emit("ping",System.currentTimeMillis());
+        }
         if (seq == 0) {
             int res = showTitle();
             if (res == 1) {
@@ -220,7 +223,7 @@ public class PrismGameMain {
         if (flag) {
             prismGamePuyopuyo.draw();
         }
-        if (fuse % 4 == 0) {
+        if (fuse % 10 == 0) {
             prismGamePuyopuyo.PuyoSend();
         }
         //System.out.println(PLAYERDATA);
