@@ -47,9 +47,23 @@ public class PrismGameClient {
             }
 
         });
+        PrismGameVariable.socket.on("pong",objects -> {
+        JSONObject jo=(JSONObject) objects[0];
+        System.out.println((""+jo+","+System.currentTimeMillis()));
+        PrismGameVariable.timeDeltas.add( jo.getLong("pong")-(System.currentTimeMillis()+jo.getLong("ping"))/2);
+        if(PrismGameVariable.timeDeltas.size()==10){
+            System.out.println(Arrays.toString(PrismGameVariable.timeDeltas.toArray()));
+            long n=0;
+            for (long t:PrismGameVariable.timeDeltas) {
+                n+=t;
+            }
+            PrismGameVariable.timeDelta=n/PrismGameVariable.timeDeltas.size();
+        }
+        });
 
         PrismGameVariable.socket.connect();
         userData.put("version", clientVersion);
+
         PrismGameVariable.socket.emit("clientLogin", userData.toString());
         PrismGameWindow pgw = new PrismGameWindow();
 
