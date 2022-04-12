@@ -3,7 +3,9 @@ package prism4291.henachoko;
 import io.socket.client.Socket;
 import org.json.JSONArray;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -31,4 +33,7 @@ public class PrismGameVariable {
     public static JSONArray PLAYERDATA=new JSONArray();
     public static String userName;
     public static Map<Integer,Texture> MYPUYOTEXTURES=new HashMap<>();
+    public static long timeDelta=0;
+    public static List<Long> timeDeltas=new ArrayList<>();
 }
+
