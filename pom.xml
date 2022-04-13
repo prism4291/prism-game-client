@@ -133,8 +133,8 @@
                         </goals>
                         <configuration>
                             <headerType>console</headerType>
-                            <jar>target/${project.build.finalName}-jar-with-dependencies.jar</jar>
-                            <outfile>target/puyo.exe</outfile>
+                            <jar>${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar</jar>
+                            <outfile>${project.build.directory}/puyo.exe</outfile>
                             <classPath>
                                 <mainClass>prism4291.henachoko.PrismGameClient</mainClass>
                             </classPath>
