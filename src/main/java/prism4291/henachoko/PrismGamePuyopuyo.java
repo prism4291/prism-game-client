@@ -77,6 +77,9 @@ public class PrismGamePuyopuyo {
     static int[] ojamaXs = new int[]{0, 3, 2, 5, 1, 4};
     boolean shouldUpdatePuyos;
     List<Long> delays;
+    Texture winTexture;
+    Texture loseTexture;
+    Map<Integer,Boolean> ifWin;
     PrismGamePuyopuyo() {
         status = "init";
         puyos = new ArrayList<>();
@@ -140,6 +143,9 @@ public class PrismGamePuyopuyo {
         }
         msg.put("texture", textures);
         PrismGameVariable.socket.emit("clientRoomMessage", msg);
+        winTexture=Texture.drawStrImage("WIN");
+        loseTexture=Texture.drawStrImage("LOSE");
+        ifWin=new HashMap<>();
     }
 
     void createPuyo(int color1, int color2) {
@@ -488,6 +494,8 @@ public class PrismGamePuyopuyo {
                 puyoBonusCash = 0;
                 ojamaX = 0;
                 shouldUpdatePuyos=true;
+                ifWin.put(0,true);
+                ifWin.put(1,true);
                 break;
             case "summon":
                 timenext++;
@@ -501,6 +509,7 @@ public class PrismGamePuyopuyo {
                     if (backPuyos.get(calPuyoMap(2, 2)) != null) {
                         game_ended = true;
                         status = "end";
+                        ifWin.put(0,false);
                         JSONObject msg = new JSONObject();
                         msg.put("from", PrismGameVariable.userName);
                         msg.put("type", "die");
@@ -713,6 +722,7 @@ public class PrismGamePuyopuyo {
 
                 break;
             case "end":
+
                 break;
         }
         for (String str : opponentCurrentPuyo.keySet()) {
@@ -1137,6 +1147,9 @@ public class PrismGamePuyopuyo {
         } else if (jo.getString("type").equals("die")) {
             game_ended = true;
             status = "end";
+            if(ifWin.get(0)) {
+                ifWin.put(1, false);
+            }
         }
     }
 
@@ -1216,6 +1229,31 @@ public class PrismGamePuyopuyo {
             drawNexts(opponentNexts.get(opponent), 1);
         }
         drawDelay();
+        if(game_ended){
+            drawWinLose(ifWin.get(0),0);
+            drawWinLose(ifWin.get(1),1);
+        }
+    }
+    void drawWinLose(boolean flag,int n){
+        glEnable(GL_TEXTURE_2D);
+        if(flag) {
+            glBindTexture(GL_TEXTURE_2D, winTexture.getId());
+        }else{
+            glBindTexture(GL_TEXTURE_2D,loseTexture.getId());
+        }
+        glBegin(GL_QUADS);
+        GL11.glTexCoord2f(0, 0);
+        glVertex2d(calWinX(2, n), calWinY(2, n));
+        GL11.glTexCoord2f(0, 1);
+        glVertex2d(calWinX(2, n), calWinY(2 + 1, n));
+        GL11.glTexCoord2f(1, 1);
+        glVertex2d(calWinX(2+ 2, n), calWinY(2+ 1, n));
+        GL11.glTexCoord2f(1, 0);
+        glVertex2d(calWinX(2+ 2, n), calWinY(2, n));
+        glEnd();
+
+
+        glDisable(GL_TEXTURE_2D);
     }
 
     boolean changePuyoColor(int c, int n) {
