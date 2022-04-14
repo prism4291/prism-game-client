@@ -1078,7 +1078,7 @@ public class PrismGamePuyopuyo {
         }
         if (jo.getString("type").equals("init")) {
             startTime = jo.getLong("startTime");
-            System.out.println(startTime);
+            //System.out.println(startTime);
             tumoData = jo.getString("tumoData");
         } else if (jo.getString("type").equals("texture")) {
             //System.out.println(jo);
