@@ -133,7 +133,7 @@ public class PrismGameMain {
         if (!socketId.equals(socket.id())) {
             return;
         }
-        if(fuse%100==0&&fuse>0&&fuse<=1000){
+        if(fuse%100==0&&fuse>0&&fuse<=500){
             PrismGameVariable.socket.emit("ping",System.currentTimeMillis());
         }
         if (seq == 0) {
@@ -648,4 +648,3 @@ public class PrismGameMain {
 
     }
 }
-
