@@ -28,7 +28,8 @@ public class PrismGamePuyopuyo {
     static int puyoMaxY = 14;
     static int puyoMaxX = 6;
     static int delayMax = 50;
-    static int ojamaRate = 180;
+    static int defaultOjamaRate=180;
+    int ojamaRate;
     static int maxOjama = 30;
     static int maxErasingTime = 40;
     int muki;
@@ -80,6 +81,7 @@ public class PrismGamePuyopuyo {
     Texture winTexture;
     Texture loseTexture;
     Map<Integer,Boolean> ifWin;
+    long marginTime;
     PrismGamePuyopuyo() {
         status = "init";
         puyos = new ArrayList<>();
@@ -146,6 +148,8 @@ public class PrismGamePuyopuyo {
         winTexture=Texture.drawStrImage("WIN");
         loseTexture=Texture.drawStrImage("LOSE");
         ifWin=new HashMap<>();
+        marginTime=0;
+        ojamaRate=defaultOjamaRate;
     }
 
     void createPuyo(int color1, int color2) {
@@ -454,6 +458,7 @@ public class PrismGamePuyopuyo {
     }
 
     int PuyoLoop() {
+        setMarginTime();
         if (yokocooldown > 0) {
             yokocooldown--;
         }
@@ -496,6 +501,7 @@ public class PrismGamePuyopuyo {
                 shouldUpdatePuyos=true;
                 ifWin.put(0,true);
                 ifWin.put(1,true);
+                ojamaRate=defaultOjamaRate;
                 break;
             case "summon":
                 timenext++;
@@ -784,7 +790,15 @@ public class PrismGamePuyopuyo {
         PrismGameVariable.socket.emit("clientRoomMessage", msg);
         ojamaYokoku = setOjamaYokoku(ojamaCount(false));
     }
-
+    void drawOjamaRate(int ojama,int maxOjama){
+        glColor3d(0,0,1);
+        glBegin(GL_QUADS);
+        glVertex2d(-0.9,-0.8);
+        glVertex2d(-0.85,-0.8);
+        glVertex2d(-0.85,-0.8+1.6/ojama);
+        glVertex2d(-0.9,-0.8+1.6/ojama);
+        glEnd();
+    }
     int kesuCheck(int x, int y, Puyopuyo puyopuyo, int kosuu, boolean flag) {
         if (flag) {
             kesuMap.put(calPuyoMap(x, y), 2);
@@ -1066,7 +1080,15 @@ public class PrismGamePuyopuyo {
             //System.out.println("send "+msg);
         }
     }
-
+    void setMarginTime(){
+        double or=defaultOjamaRate;
+        for(int i=0;i<(int)Math.max(0,((System.currentTimeMillis()+PrismGameVariable.timeDelta)-marginTime)/1000);i++){
+            or= ojamaRate*0.95;
+        }
+        System.out.println(or);
+        ojamaRate= (int) Math.max(1,or);
+        //ojamaRate= (int) Math.max(1,defaultOjamaRate- Math.max(0,((System.currentTimeMillis()+PrismGameVariable.timeDelta)-marginTime)/1000));
+    }
     void updateData(JSONObject jo) {
         //System.out.println("got "+jo);
         if(jo.has("time")){
@@ -1078,6 +1100,7 @@ public class PrismGamePuyopuyo {
         }
         if (jo.getString("type").equals("init")) {
             startTime = jo.getLong("startTime");
+            marginTime=startTime+96000L;
             //System.out.println(startTime);
             tumoData = jo.getString("tumoData");
         } else if (jo.getString("type").equals("texture")) {
@@ -1229,6 +1252,7 @@ public class PrismGamePuyopuyo {
             drawNexts(opponentNexts.get(opponent), 1);
         }
         drawDelay();
+        drawOjamaRate(ojamaRate,defaultOjamaRate);
         if(game_ended){
             drawWinLose(ifWin.get(0),0);
             drawWinLose(ifWin.get(1),1);
