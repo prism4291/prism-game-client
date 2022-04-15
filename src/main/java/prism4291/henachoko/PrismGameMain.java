@@ -48,6 +48,8 @@ public class PrismGameMain {
         images.put("title", Texture.loadTexture("/title.png"));
         images.put("host", Texture.loadTexture("/host.png"));
         images.put("guest", Texture.loadTexture("/guest.png"));
+        images.put("sousa",Texture.loadTexture("/sousa.png"));
+        images.put("enter",Texture.loadTexture("/enter.png"));
         menuSelect = 0;
         roomJoined = false;
         gameStarting = false;
@@ -121,7 +123,38 @@ public class PrismGameMain {
             PrismGameVariable.PLAYERDATA.put(jo);
         });
     }
-
+    void drawSousa(){
+        glColor3d(1,1,1);
+        glBindTexture(GL_TEXTURE_2D,images.get("sousa").getId());
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+        GL11.glBegin(GL11.GL_QUADS);
+        GL11.glTexCoord2f(0, 0);
+        GL11.glVertex2d(-1, -0.8);
+        GL11.glTexCoord2f(0, 1);
+        GL11.glVertex2d(-1, -1);
+        GL11.glTexCoord2f(1, 1);
+        GL11.glVertex2d(-0.8, -1);
+        GL11.glTexCoord2f(1, 0);
+        GL11.glVertex2d(-0.8, -0.8);
+        GL11.glEnd();
+        glDisable(GL_TEXTURE_2D);
+    }
+    void drawEnter(){
+        glColor3d(1,1,1);
+        glBindTexture(GL_TEXTURE_2D,images.get("enter").getId());
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+        GL11.glBegin(GL11.GL_QUADS);
+        GL11.glTexCoord2f(0, 0);
+        GL11.glVertex2d(0.8, -0.8);
+        GL11.glTexCoord2f(0, 1);
+        GL11.glVertex2d(0.8, -1);
+        GL11.glTexCoord2f(1, 1);
+        GL11.glVertex2d(1, -1);
+        GL11.glTexCoord2f(1, 0);
+        GL11.glVertex2d(1, -0.8);
+        GL11.glEnd();
+        glDisable(GL_TEXTURE_2D);
+    }
     void Main(boolean flag) {
         if (fuse == 0) {
             getPuyoTextures();
@@ -155,6 +188,7 @@ public class PrismGameMain {
                 menuSelect = 0;
                 PrismGameVariable.socket.emit("clientGetRoom");
             }
+            drawEnter();
         } else if (seq == 2) {
             int res = showHost();
             if (res == 1) {
@@ -165,6 +199,7 @@ public class PrismGameMain {
                 seq = 5;
                 isHost = true;
             }
+
         } else if (seq == 3) {
             if (fuse % 300 == 0) {
                 PrismGameVariable.socket.emit("clientGetRoom");
@@ -182,7 +217,7 @@ public class PrismGameMain {
                     seq = 4;
                 }
             }
-
+            drawEnter();
         } else if (seq == 4) {
             showJoinedRoom();
             if (gameStarting) {
@@ -210,6 +245,7 @@ public class PrismGameMain {
             }
 
         }
+        drawSousa();
         //System.out.println(seq);
         myActionMain();
     }
@@ -217,11 +253,15 @@ public class PrismGameMain {
     int MainGame(boolean flag) {
 
         int res = prismGamePuyopuyo.PuyoLoop();
-        if (res == 1 && isHost && KEY_BUTTON[GLFW.GLFW_KEY_ENTER] == 1) {
-            return 1;
-        }
+
         if (flag) {
             prismGamePuyopuyo.draw();
+        }
+        if (res == 1 && isHost ) {
+            drawEnter();
+            if(KEY_BUTTON[GLFW.GLFW_KEY_ENTER] == 1) {
+                return 1;
+            }
         }
         if (fuse % 10 == 0) {
             prismGamePuyopuyo.PuyoSend();
@@ -424,9 +464,11 @@ public class PrismGameMain {
             GL11.glEnd();
             y -= 0.1;
         }
-        if (KEY_BUTTON[GLFW.GLFW_KEY_ENTER] == 1) {
+
             if (currentRoom != null) {
                 if (currentRoom.getJSONArray("guest").length() >= 1) {
+                    drawEnter();
+                    if (KEY_BUTTON[GLFW.GLFW_KEY_ENTER] == 1) {
                     return 1;
                 }
             }
