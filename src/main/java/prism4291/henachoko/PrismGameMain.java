@@ -263,7 +263,7 @@ public class PrismGameMain {
                 return 1;
             }
         }
-        if (fuse % 10 == 0) {
+        if (fuse % 4 == 0) {
             prismGamePuyopuyo.PuyoSend();
         }
         //System.out.println(PLAYERDATA);
