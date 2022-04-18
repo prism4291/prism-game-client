@@ -29,7 +29,7 @@ public class PrismGamePuyopuyo {
     static int puyoMaxX = 6;
     static int delayMax = 50;
     static int defaultOjamaRate=180;
-    int ojamaRate;
+    double ojamaRate;
     static int maxOjama = 30;
     static int maxErasingTime = 40;
     int muki;
@@ -82,6 +82,8 @@ public class PrismGamePuyopuyo {
     Texture loseTexture;
     Map<Integer,Boolean> ifWin;
     long marginTime;
+    boolean ifSendTexture=true;
+    int puyoBonusAdd;
     PrismGamePuyopuyo() {
         status = "init";
         puyos = new ArrayList<>();
@@ -131,20 +133,26 @@ public class PrismGamePuyopuyo {
         shouldUpdatePuyos=true;
         delays=new ArrayList<>();
         Map<Integer, Texture> map = new HashMap<>();
+        //System.out.println("A");
         for (int n : PrismGameVariable.MYPUYOTEXTURES.keySet()) {
+            //System.out.println(n);
             map.put(n, PrismGameVariable.MYPUYOTEXTURES.get(n));
         }
+        //System.out.println("B");
         puyoTextureData.put(0, map);
-        JSONObject msg = new JSONObject();
-        msg.put("from", PrismGameVariable.userName);
-        msg.put("type", "texture");
-        msg.put("time", (System.currentTimeMillis()+PrismGameVariable.timeDelta));
-        JSONObject textures = new JSONObject();
-        for (int i : puyoTextureData.get(0).keySet()) {
-            textures.put(String.valueOf(i), puyoTextureData.get(0).get(i).getB64s());
+        if(ifSendTexture) {
+            //System.out.println("C");
+            JSONObject msg = new JSONObject();
+            msg.put("from", PrismGameVariable.userName);
+            msg.put("type", "texture");
+            msg.put("time", (System.currentTimeMillis() + PrismGameVariable.timeDelta));
+            JSONObject textures = new JSONObject();
+            for (int i : puyoTextureData.get(0).keySet()) {
+                textures.put(String.valueOf(i), puyoTextureData.get(0).get(i).getB64s());
+            }
+            msg.put("texture", textures);
+            PrismGameVariable.socket.emit("clientRoomMessage", msg);
         }
-        msg.put("texture", textures);
-        PrismGameVariable.socket.emit("clientRoomMessage", msg);
         winTexture=Texture.drawStrImage("WIN");
         loseTexture=Texture.drawStrImage("LOSE");
         ifWin=new HashMap<>();
@@ -502,6 +510,7 @@ public class PrismGamePuyopuyo {
                 ifWin.put(0,true);
                 ifWin.put(1,true);
                 ojamaRate=defaultOjamaRate;
+                puyoBonusAdd=0;
                 break;
             case "summon":
                 timenext++;
@@ -708,7 +717,7 @@ public class PrismGamePuyopuyo {
                                         }
                                     }
                                     if (zenKesi) {
-                                        puyoBonusCash += ojamaRate * 30;
+                                        puyoBonusAdd+=30;
                                     }
                                 }
                                 status = "summon";
@@ -757,8 +766,9 @@ public class PrismGamePuyopuyo {
     }
 
     void sendOjama(int n, int r, boolean end) {
-        int nn = (n + puyoBonusCash) / ojamaRate;
-        puyoBonusCash = (n + puyoBonusCash) % ojamaRate;
+        int nn = (n + puyoBonusCash) / (int)ojamaRate+puyoBonusAdd;
+        puyoBonusAdd=0;
+        puyoBonusCash = (n + puyoBonusCash) % (int)ojamaRate;
         if (myOjama != null) {
             for (String str : myOjama.keySet()) {
                 if (str.equals(PrismGameVariable.userName)) {
@@ -790,7 +800,7 @@ public class PrismGamePuyopuyo {
         PrismGameVariable.socket.emit("clientRoomMessage", msg);
         ojamaYokoku = setOjamaYokoku(ojamaCount(false));
     }
-    void drawOjamaRate(int ojama,int maxOjama){
+    void drawOjamaRate(double ojama){
         glColor3d(0,0,1);
         glBegin(GL_QUADS);
         glVertex2d(-0.9,-0.8);
@@ -1081,12 +1091,15 @@ public class PrismGamePuyopuyo {
         }
     }
     void setMarginTime(){
+        if(marginTime<=0){
+            return;
+        }
         double or=defaultOjamaRate;
         for(int i=0;i<(int)Math.max(0,((System.currentTimeMillis()+PrismGameVariable.timeDelta)-marginTime)/1000);i++){
-            or= ojamaRate*0.95;
+            or=or*0.98;
         }
-        System.out.println(or);
-        ojamaRate= (int) Math.max(1,or);
+        //System.out.println(or);
+        ojamaRate= Math.max(1,or);
         //ojamaRate= (int) Math.max(1,defaultOjamaRate- Math.max(0,((System.currentTimeMillis()+PrismGameVariable.timeDelta)-marginTime)/1000));
     }
     void updateData(JSONObject jo) {
@@ -1105,13 +1118,15 @@ public class PrismGamePuyopuyo {
             tumoData = jo.getString("tumoData");
         } else if (jo.getString("type").equals("texture")) {
             //System.out.println(jo);
-            String dataFrom = jo.getString("from");
-            if (!dataFrom.equals(PrismGameVariable.userName)) {
-                JSONObject obj = jo.getJSONObject("texture");
-                for (String i : obj.keySet()) {
-                    int n = Integer.parseInt(i);
-                    puyoTextureData.computeIfAbsent(1, k -> new HashMap<>());
-                    puyoTextureData.get(1).put(n, Texture.b64ToTexture(obj.getString(i)));
+            if(ifSendTexture) {
+                String dataFrom = jo.getString("from");
+                if (!dataFrom.equals(PrismGameVariable.userName)) {
+                    JSONObject obj = jo.getJSONObject("texture");
+                    for (String i : obj.keySet()) {
+                        int n = Integer.parseInt(i);
+                        puyoTextureData.computeIfAbsent(1, k -> new HashMap<>());
+                        puyoTextureData.get(1).put(n, Texture.b64ToTexture(obj.getString(i)));
+                    }
                 }
             }
             //System.out.println(puyoTextureData);
@@ -1252,7 +1267,7 @@ public class PrismGamePuyopuyo {
             drawNexts(opponentNexts.get(opponent), 1);
         }
         drawDelay();
-        drawOjamaRate(ojamaRate,defaultOjamaRate);
+        drawOjamaRate(ojamaRate);
         if(game_ended){
             drawWinLose(ifWin.get(0),0);
             drawWinLose(ifWin.get(1),1);
@@ -1281,7 +1296,9 @@ public class PrismGamePuyopuyo {
     }
 
     boolean changePuyoColor(int c, int n) {
-
+        if(!ifSendTexture){
+            n=0;
+        }
         boolean hasTexture = false;
 
         switch (c) {
