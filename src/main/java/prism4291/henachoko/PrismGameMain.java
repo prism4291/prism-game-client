@@ -166,9 +166,12 @@ public class PrismGameMain {
         if (!socketId.equals(socket.id())) {
             return;
         }
-        if(fuse%100==0&&fuse>0&&fuse<=500){
+        if(fuse%100==0&&fuse>0&&timeDeltas.size()<5){
             PrismGameVariable.socket.emit("ping",System.currentTimeMillis());
-        }
+        }/*else if(fuse%100==0){
+            System.out.println("fuse "+fuse);
+            System.out.println(timeDeltas);
+        }*/
         if (seq == 0) {
             int res = showTitle();
             if (res == 1) {
