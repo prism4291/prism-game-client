@@ -179,4 +179,3 @@ public class Texture {
 
         return new Texture(id);
     }
-}
