@@ -36,4 +36,3 @@ public class PrismGameVariable {
     public static long timeDelta=0;
     public static List<Long> timeDeltas=new ArrayList<>();
 }
-
