@@ -488,16 +488,16 @@ public class PrismGamePuyopuyo {
                     PrismGameVariable.socket.emit("clientRoomMessage", msg);
                     status = "ready";
                     tumoIndex = 0;
-                    System.out.println("host ready");
+                    //System.out.println("host ready");
                 } else if (startTime > 0) {
-                    System.out.println("guest ready");
+                    //System.out.println("guest ready");
                     status = "ready";
                 }
                 break;
             case "ready":
                 if ((System.currentTimeMillis()+PrismGameVariable.timeDelta) >= startTime) {
                     status = "go";
-                    System.out.println("go");
+                    //System.out.println("go");
                 }
                 break;
             case "go":
@@ -800,15 +800,7 @@ public class PrismGamePuyopuyo {
         PrismGameVariable.socket.emit("clientRoomMessage", msg);
         ojamaYokoku = setOjamaYokoku(ojamaCount(false));
     }
-    void drawOjamaRate(double ojama){
-        glColor3d(0,0,1);
-        glBegin(GL_QUADS);
-        glVertex2d(-0.9,-0.8);
-        glVertex2d(-0.85,-0.8);
-        glVertex2d(-0.85,-0.8+1.6/ojama);
-        glVertex2d(-0.9,-0.8+1.6/ojama);
-        glEnd();
-    }
+
     int kesuCheck(int x, int y, Puyopuyo puyopuyo, int kosuu, boolean flag) {
         if (flag) {
             kesuMap.put(calPuyoMap(x, y), 2);
@@ -1096,7 +1088,7 @@ public class PrismGamePuyopuyo {
         }
         double or=defaultOjamaRate;
         for(int i=0;i<(int)Math.max(0,((System.currentTimeMillis()+PrismGameVariable.timeDelta)-marginTime)/1000);i++){
-            or=or*0.98;
+            or=or*0.99;
         }
         //System.out.println(or);
         ojamaRate= Math.max(1,or);
@@ -1114,7 +1106,8 @@ public class PrismGamePuyopuyo {
         if (jo.getString("type").equals("init")) {
             startTime = jo.getLong("startTime");
             marginTime=startTime+96000L;
-            //System.out.println(startTime);
+            //System.out.println("Start time "+startTime);
+            //System.out.println("Current time "+System.currentTimeMillis());
             tumoData = jo.getString("tumoData");
         } else if (jo.getString("type").equals("texture")) {
             //System.out.println(jo);
@@ -1509,6 +1502,24 @@ public class PrismGamePuyopuyo {
 
         glEnd();
     }
+    void drawOjamaRate(double ojama){
+        glColor3d(0,0,1);
+        glBegin(GL_QUADS);
+        double y;
+        for(long i=0;i<(defaultOjamaRate/ojama);i++) {
+            if ((defaultOjamaRate / ojama) - i <= 1) {
+                y = (defaultOjamaRate / ojama) - i;
+            } else {
+                y = 1;
+            }
+
+            glVertex2d(-0.9, -0.8 + i / 10.0);
+            glVertex2d(-0.85, -0.8+ i / 10.0);
+            glVertex2d(-0.85, -0.8 + i / 10.0+ y/12.0);
+            glVertex2d(-0.9, -0.8 + i / 10.0+ y/12.0);
+        }
+        glEnd();
+    }
     double calWinX(double x, int n) {
         return -1 + x * 9.0 / 120 + 0.2 + n * 1.2;
     }
@@ -1520,3 +1531,4 @@ public class PrismGamePuyopuyo {
         return 1 - y * 16.0 / 120 + 0.5;
     }
 }
+
