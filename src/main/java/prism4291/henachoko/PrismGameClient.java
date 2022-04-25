@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class PrismGameClient {
-    static final int clientVersion = 4;
+    static final int clientVersion = 5;
     static String keyName = "username";
     static String keyPassWord = "password";
 
@@ -47,18 +47,19 @@ public class PrismGameClient {
             }
 
         });
-        PrismGameVariable.socket.on("pong",objects -> {
-        JSONObject jo=(JSONObject) objects[0];
-        //System.out.println((""+jo+","+System.currentTimeMillis()));
-        PrismGameVariable.timeDeltas.add( (System.currentTimeMillis()+jo.getLong("ping"))/2-jo.getLong("pong"));
-        if(PrismGameVariable.timeDeltas.size()==10){
-            //System.out.println(Arrays.toString(PrismGameVariable.timeDeltas.toArray()));
-            long n=0;
-            for (long t:PrismGameVariable.timeDeltas) {
-                n+=t;
+        PrismGameVariable.socket.on("pong", objects -> {
+            JSONObject jo = (JSONObject) objects[0];
+            //System.out.println((""+jo+","+System.currentTimeMillis()));
+            PrismGameVariable.timeDeltas.add(jo.getLong("pong") - (System.currentTimeMillis() + jo.getLong("ping")) / 2);
+            if (PrismGameVariable.timeDeltas.size() == 5) {
+                //System.out.println(Arrays.toString(PrismGameVariable.timeDeltas.toArray()));
+                long n = 0;
+                for (long t : PrismGameVariable.timeDeltas) {
+                    n += t;
+                }
+                PrismGameVariable.timeDelta = n / PrismGameVariable.timeDeltas.size();
+                //System.out.println("DELTA : "+PrismGameVariable.timeDelta);
             }
-            PrismGameVariable.timeDelta=n/PrismGameVariable.timeDeltas.size();
-        }
         });
 
         PrismGameVariable.socket.connect();
@@ -124,3 +125,4 @@ public class PrismGameClient {
         return !str.replaceAll("\\w", "").equals("");
     }
 }
+
